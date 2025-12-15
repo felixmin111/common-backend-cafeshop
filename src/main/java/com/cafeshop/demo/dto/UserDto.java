@@ -22,4 +22,5 @@ public class UserDto {
     @NotBlank(message = "Email is required")
     @Size(min = 6, max = 50, message = "Password must be between 6 and 50 characters")
     private String password;
+    private String token;
 }

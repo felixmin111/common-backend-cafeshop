@@ -2,6 +2,10 @@ package com.cafeshop.demo.mode;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.Instant;
+import java.util.Date;
 
 @Entity
 @Table(name = "customers")
@@ -33,5 +37,9 @@ public class User {
 
     @Column(name = "hashpassword", nullable = false)
     private String hashPassword;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+
 }
 

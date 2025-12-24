@@ -1,9 +1,12 @@
 package com.cafeshop.demo.dto.menuItem;
 
+import com.cafeshop.demo.dto.tag.TagResponse;
 import com.cafeshop.demo.mode.enums.AvailableIn;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.Set;
 
 @Getter
 @Builder
@@ -18,4 +21,5 @@ public class MenuItemResponse {
 
     private Long categoryId;
     private String categoryName;
+    private Set<TagResponse> tags;
 }

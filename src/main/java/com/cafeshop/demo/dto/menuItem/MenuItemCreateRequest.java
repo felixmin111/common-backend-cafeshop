@@ -3,9 +3,12 @@ package com.cafeshop.demo.dto.menuItem;
 import com.cafeshop.demo.mode.enums.AvailableIn;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -31,4 +34,9 @@ public class MenuItemCreateRequest {
 
     @NotNull(message = "categoryId is required")
     private Long categoryId;
+
+    @NotNull(message = "tagIds is required")
+    @NotEmpty(message = "tagIds cannot be empty")
+    private Set<Long> tagIds;
+
 }

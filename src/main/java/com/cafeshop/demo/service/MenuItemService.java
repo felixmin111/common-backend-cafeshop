@@ -17,4 +17,6 @@ public interface MenuItemService {
     List<MenuItemResponse> findByStatus(MenuItemStatus status);
 
     void delete(Long id);
+
+    MenuItemResponse update(Long id, MenuItemCreateRequest request);
 }

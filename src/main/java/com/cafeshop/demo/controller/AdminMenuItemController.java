@@ -40,5 +40,13 @@ public class AdminMenuItemController {
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
+
+    @PutMapping("/{id}")
+    public MenuItemResponse update(
+            @PathVariable Long id,
+            @Valid @RequestBody MenuItemCreateRequest request
+    ) {
+        return service.update(id, request);
+    }
 }
 

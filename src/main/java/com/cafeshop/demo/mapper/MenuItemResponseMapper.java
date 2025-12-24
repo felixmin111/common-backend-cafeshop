@@ -13,7 +13,10 @@ public interface MenuItemResponseMapper {
     @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
     MenuItemResponse toDto(MenuItem entity);
+
+    @Mapping(target = "tags", ignore = true)
     MenuItem toEntity(MenuItemResponse dto);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(MenuItemResponse dto, @MappingTarget MenuItem entity);
 

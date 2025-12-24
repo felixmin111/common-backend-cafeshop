@@ -6,14 +6,18 @@ import com.cafeshop.demo.mapper.MenuItemCreateRequestMapper;
 import com.cafeshop.demo.mapper.MenuItemResponseMapper;
 import com.cafeshop.demo.mode.Category;
 import com.cafeshop.demo.mode.MenuItem;
+import com.cafeshop.demo.mode.Tag;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import com.cafeshop.demo.repository.CategoryRepository;
 import com.cafeshop.demo.repository.MenuItemRepository;
+import com.cafeshop.demo.repository.TagRepository;
 import com.cafeshop.demo.service.MenuItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     private final MenuItemResponseMapper menuItemResponseMapper;
     private final MenuItemRepository repository;
     private final CategoryRepository categoryRepository;
+    private final TagRepository tagRepo;
 
 
     @Override
@@ -36,6 +41,8 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         MenuItem menuItem = menuItemCreateRequestMapper.toEntity(request);
         menuItem.setCategory(category);
+        menuItem.setTags(resolveTags(request.getTagIds()));
+
 
         return menuItemResponseMapper.toDto(repository.save(menuItem));
     }
@@ -65,10 +72,53 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     @Override
     public void delete(Long id) {
-        if (!repository.existsById(id))
-            throw new RuntimeException("MenuItem not found");
+        MenuItem p = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        repository.deleteById(id);
+        p.getTags().clear();
+        repository.delete(p);
     }
+
+    private Set<Tag> resolveTags(Set<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) return new HashSet<>();
+        List<Tag> tags = tagRepo.findAllById(tagIds);
+        if (tags.size() != tagIds.size()) {
+            throw new RuntimeException("Some tagIds are invalid");
+        }
+        return new HashSet<>(tags);
+    }
+
+    @Override
+    public MenuItemResponse update(Long id, MenuItemCreateRequest request) {
+
+        MenuItem existing = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("MenuItem not found: " + id));
+
+        // ✅ SKU unique check (only if changed)
+        repository.findBySku(request.getSku()).ifPresent(found -> {
+            if (!found.getId().equals(id)) {
+                throw new RuntimeException("SKU already exists");
+            }
+        });
+
+        // ✅ update category if provided
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found: " + request.getCategoryId()));
+
+        // ✅ map request -> existing entity (exclude category/tags in mapper)
+        // If your mapper has updateEntity(@MappingTarget MenuItem, MenuItemCreateRequest)
+        menuItemCreateRequestMapper.updateEntityFromDto(request,existing);
+
+        existing.setCategory(category);
+
+        // ✅ replace tags (many-to-many)
+        existing.getTags().clear();
+        existing.getTags().addAll(resolveTags(request.getTagIds()));
+
+        // save
+        MenuItem saved = repository.save(existing);
+        return menuItemResponseMapper.toDto(saved);
+    }
+
 
 }

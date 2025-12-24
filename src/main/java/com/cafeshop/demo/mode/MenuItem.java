@@ -5,6 +5,9 @@ import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "menuItems")
 @Getter
@@ -42,4 +45,11 @@ public class MenuItem extends AuditableEntity{
             foreignKey = @ForeignKey(name = "fk_menu_item_category"))
     private Category category;
 
+    @ManyToMany
+    @JoinTable(
+            name = "menu_item_tags",
+            joinColumns = @JoinColumn(name = "menu_item_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 }

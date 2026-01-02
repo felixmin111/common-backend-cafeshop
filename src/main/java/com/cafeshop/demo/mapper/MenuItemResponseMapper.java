@@ -8,10 +8,11 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = { MenuItemSizeResponseMapper.class })
 public interface MenuItemResponseMapper {
     @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
+    @Mapping(target = "sizes", source = "sizes")
     MenuItemResponse toDto(MenuItem entity);
 
     @Mapping(target = "tags", ignore = true)

@@ -1,5 +1,6 @@
 package com.cafeshop.demo.dto.menuItem;
 
+import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeResponse;
 import com.cafeshop.demo.dto.tag.TagResponse;
 import com.cafeshop.demo.mode.enums.AvailableIn;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
@@ -22,4 +23,5 @@ public class MenuItemResponse {
     private Long categoryId;
     private String categoryName;
     private Set<TagResponse> tags;
+    private Set<MenuItemSizeResponse> sizes;
 }

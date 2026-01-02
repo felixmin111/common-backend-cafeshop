@@ -1,5 +1,6 @@
 package com.cafeshop.demo.dto.menuItem;
 
+import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeCreateRequest;
 import com.cafeshop.demo.mode.enums.AvailableIn;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import jakarta.validation.constraints.NotBlank;
@@ -38,5 +39,7 @@ public class MenuItemCreateRequest {
     @NotNull(message = "tagIds is required")
     @NotEmpty(message = "tagIds cannot be empty")
     private Set<Long> tagIds;
+
+    private Set<MenuItemSizeCreateRequest> sizes;
 
 }

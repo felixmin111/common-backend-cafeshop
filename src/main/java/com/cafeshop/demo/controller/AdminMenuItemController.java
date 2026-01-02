@@ -1,6 +1,7 @@
 package com.cafeshop.demo.controller;
 import com.cafeshop.demo.dto.menuItem.MenuItemCreateRequest;
 import com.cafeshop.demo.dto.menuItem.MenuItemResponse;
+import com.cafeshop.demo.mode.MenuItem;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import com.cafeshop.demo.service.MenuItemService;
 import jakarta.validation.Valid;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/admin/menu-items")
 @RequiredArgsConstructor

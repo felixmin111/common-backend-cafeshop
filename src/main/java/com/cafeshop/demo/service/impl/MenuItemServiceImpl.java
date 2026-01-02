@@ -2,14 +2,14 @@ package com.cafeshop.demo.service.impl;
 
 import com.cafeshop.demo.dto.menuItem.MenuItemCreateRequest;
 import com.cafeshop.demo.dto.menuItem.MenuItemResponse;
+import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeCreateRequest;
 import com.cafeshop.demo.mapper.MenuItemCreateRequestMapper;
 import com.cafeshop.demo.mapper.MenuItemResponseMapper;
-import com.cafeshop.demo.mode.Category;
-import com.cafeshop.demo.mode.MenuItem;
-import com.cafeshop.demo.mode.Tag;
+import com.cafeshop.demo.mode.*;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import com.cafeshop.demo.repository.CategoryRepository;
 import com.cafeshop.demo.repository.MenuItemRepository;
+import com.cafeshop.demo.repository.SizeRepository;
 import com.cafeshop.demo.repository.TagRepository;
 import com.cafeshop.demo.service.MenuItemService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +27,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     private final MenuItemRepository repository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepo;
+    private final SizeRepository sizeRepository;
 
 
     @Override
@@ -41,6 +42,10 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         MenuItem menuItem = menuItemCreateRequestMapper.toEntity(request);
         menuItem.setCategory(category);
+
+        menuItem.getSizes().clear();
+        menuItem.getSizes().addAll(buildMenuItemSizes(menuItem, request.getSizes()));
+
         menuItem.setTags(resolveTags(request.getTagIds()));
 
 
@@ -49,7 +54,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     @Override
     public List<MenuItemResponse> findAll() {
-        return repository.findAllWithCategory()
+        return repository.findAll()
                 .stream()
                 .map(menuItemResponseMapper::toDto)
                 .toList();
@@ -94,30 +99,58 @@ public class MenuItemServiceImpl implements MenuItemService {
         MenuItem existing = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("MenuItem not found: " + id));
 
-        // ✅ SKU unique check (only if changed)
         repository.findBySku(request.getSku()).ifPresent(found -> {
             if (!found.getId().equals(id)) {
                 throw new RuntimeException("SKU already exists");
             }
         });
 
-        // ✅ update category if provided
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found: " + request.getCategoryId()));
 
-        // ✅ map request -> existing entity (exclude category/tags in mapper)
-        // If your mapper has updateEntity(@MappingTarget MenuItem, MenuItemCreateRequest)
         menuItemCreateRequestMapper.updateEntityFromDto(request,existing);
 
         existing.setCategory(category);
 
-        // ✅ replace tags (many-to-many)
         existing.getTags().clear();
         existing.getTags().addAll(resolveTags(request.getTagIds()));
+
+        existing.getSizes().clear();
+        existing.getSizes().addAll(buildMenuItemSizes(existing, request.getSizes()));
 
         // save
         MenuItem saved = repository.save(existing);
         return menuItemResponseMapper.toDto(saved);
+    }
+
+    private Set<MenuItemSize> buildMenuItemSizes(MenuItem menuItem, Set<MenuItemSizeCreateRequest> sizeDtos) {
+        if (sizeDtos == null || sizeDtos.isEmpty()) return new HashSet<>();
+
+        // load all sizes once
+        Set<Long> sizeIds = sizeDtos.stream().map(MenuItemSizeCreateRequest::getSizeId).collect(java.util.stream.Collectors.toSet());
+        List<Size> sizes = sizeRepository.findAllById(sizeIds);
+        if (sizes.size() != sizeIds.size()) {
+            throw new RuntimeException("Some sizeIds are invalid");
+        }
+        var sizeMap = sizes.stream().collect(java.util.stream.Collectors.toMap(Size::getId, s -> s));
+
+        Set<MenuItemSize> result = new HashSet<>();
+        for (MenuItemSizeCreateRequest dto : sizeDtos) {
+            Size size = sizeMap.get(dto.getSizeId());
+
+            if (dto.getSellPrice() == null) {
+                throw new RuntimeException("sellPrice is required for sizeId=" + dto.getSizeId());
+            }
+
+            result.add(MenuItemSize.builder()
+                    .menuItem(menuItem)
+                    .size(size)
+                    .originalPrice(dto.getOriginalPrice())
+                    .sellPrice(dto.getSellPrice())
+                    .description(dto.getDesc())
+                    .build());
+        }
+        return result;
     }
 
 

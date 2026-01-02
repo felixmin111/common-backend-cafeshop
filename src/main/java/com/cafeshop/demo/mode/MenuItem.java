@@ -52,4 +52,8 @@ public class MenuItem extends AuditableEntity{
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags = new HashSet<>();
+
+    @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<MenuItemSize> sizes = new HashSet<>();
 }

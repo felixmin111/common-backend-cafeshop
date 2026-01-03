@@ -13,6 +13,7 @@ public interface MenuItemResponseMapper {
     @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "sizes", source = "sizes")
+    @Mapping(target = "ingredients", source = "ingredients")
     MenuItemResponse toDto(MenuItem entity);
 
     @Mapping(target = "tags", ignore = true)

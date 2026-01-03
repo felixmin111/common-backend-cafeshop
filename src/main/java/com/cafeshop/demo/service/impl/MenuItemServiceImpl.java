@@ -1,8 +1,10 @@
 package com.cafeshop.demo.service.impl;
 
+import com.cafeshop.demo.dto.ingredient.IngredientCreateRequest;
 import com.cafeshop.demo.dto.menuItem.MenuItemCreateRequest;
 import com.cafeshop.demo.dto.menuItem.MenuItemResponse;
 import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeCreateRequest;
+import com.cafeshop.demo.mapper.IngredientMapper;
 import com.cafeshop.demo.mapper.MenuItemCreateRequestMapper;
 import com.cafeshop.demo.mapper.MenuItemResponseMapper;
 import com.cafeshop.demo.mode.*;
@@ -24,6 +26,7 @@ import java.util.Set;
 public class MenuItemServiceImpl implements MenuItemService {
     private final MenuItemCreateRequestMapper menuItemCreateRequestMapper;
     private final MenuItemResponseMapper menuItemResponseMapper;
+    private final IngredientMapper ingredientMapper;
     private final MenuItemRepository repository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepo;
@@ -47,6 +50,9 @@ public class MenuItemServiceImpl implements MenuItemService {
         menuItem.getSizes().addAll(buildMenuItemSizes(menuItem, request.getSizes()));
 
         menuItem.setTags(resolveTags(request.getTagIds()));
+
+        menuItem.getIngredients().clear();
+        menuItem.getIngredients().addAll(buildIngredients(menuItem, request.getIngredients()));
 
 
         return menuItemResponseMapper.toDto(repository.save(menuItem));
@@ -118,7 +124,9 @@ public class MenuItemServiceImpl implements MenuItemService {
         existing.getSizes().clear();
         existing.getSizes().addAll(buildMenuItemSizes(existing, request.getSizes()));
 
-        // save
+        existing.getIngredients().clear();
+        existing.getIngredients().addAll(buildIngredients(existing, request.getIngredients()));
+
         MenuItem saved = repository.save(existing);
         return menuItemResponseMapper.toDto(saved);
     }
@@ -149,6 +157,21 @@ public class MenuItemServiceImpl implements MenuItemService {
                     .sellPrice(dto.getSellPrice())
                     .description(dto.getDesc())
                     .build());
+        }
+        return result;
+    }
+
+    private Set<Ingredient> buildIngredients(
+            MenuItem menuItem,
+            Set<IngredientCreateRequest> ingredientDtos
+    ) {
+        if (ingredientDtos == null || ingredientDtos.isEmpty()) return new HashSet<>();
+
+        Set<Ingredient> result = new HashSet<>();
+        for (var dto : ingredientDtos) {
+            Ingredient ing = ingredientMapper.toEntity(dto);
+            ing.setMenuItem(menuItem);
+            result.add(ing);
         }
         return result;
     }

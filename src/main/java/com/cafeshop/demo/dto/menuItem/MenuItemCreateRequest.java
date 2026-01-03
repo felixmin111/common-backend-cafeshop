@@ -1,5 +1,7 @@
 package com.cafeshop.demo.dto.menuItem;
 
+import com.cafeshop.demo.dto.ingredient.IngredientCreateRequest;
+import com.cafeshop.demo.dto.ingredient.IngredientUpsertRequest;
 import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeCreateRequest;
 import com.cafeshop.demo.mode.enums.AvailableIn;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
@@ -41,5 +43,7 @@ public class MenuItemCreateRequest {
     private Set<Long> tagIds;
 
     private Set<MenuItemSizeCreateRequest> sizes;
+    private Set<IngredientCreateRequest> ingredients;
+
 
 }

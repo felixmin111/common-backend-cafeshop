@@ -56,4 +56,9 @@ public class MenuItem extends AuditableEntity{
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<MenuItemSize> sizes = new HashSet<>();
+
+    @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<Ingredient> ingredients = new HashSet<>();
+
 }

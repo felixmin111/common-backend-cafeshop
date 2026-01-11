@@ -6,10 +6,8 @@ import lombok.Setter;
 
 @Getter @Setter
 public class IngredientCreateRequest {
-
     @NotBlank
     private String name;
-
     private String amount;
     private String note;
 }

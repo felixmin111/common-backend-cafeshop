@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -114,15 +115,13 @@ public class MenuItemServiceImpl implements MenuItemService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found: " + request.getCategoryId()));
 
-        menuItemCreateRequestMapper.updateEntityFromDto(request,existing);
-
+        menuItemCreateRequestMapper.updateEntityFromDto(request, existing);
         existing.setCategory(category);
 
         existing.getTags().clear();
         existing.getTags().addAll(resolveTags(request.getTagIds()));
 
-        existing.getSizes().clear();
-        existing.getSizes().addAll(buildMenuItemSizes(existing, request.getSizes()));
+        syncMenuItemSizes(existing, request.getSizes());
 
         existing.getIngredients().clear();
         existing.getIngredients().addAll(buildIngredients(existing, request.getIngredients()));
@@ -133,8 +132,6 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     private Set<MenuItemSize> buildMenuItemSizes(MenuItem menuItem, Set<MenuItemSizeCreateRequest> sizeDtos) {
         if (sizeDtos == null || sizeDtos.isEmpty()) return new HashSet<>();
-
-        // load all sizes once
         Set<Long> sizeIds = sizeDtos.stream().map(MenuItemSizeCreateRequest::getSizeId).collect(java.util.stream.Collectors.toSet());
         List<Size> sizes = sizeRepository.findAllById(sizeIds);
         if (sizes.size() != sizeIds.size()) {
@@ -174,6 +171,53 @@ public class MenuItemServiceImpl implements MenuItemService {
             result.add(ing);
         }
         return result;
+    }
+
+    private void syncMenuItemSizes(MenuItem menuItem, Set<MenuItemSizeCreateRequest> reqSizes) {
+
+        Map<Long, MenuItemSize> existingBySizeId = menuItem.getSizes().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        mis -> mis.getSize().getId(),
+                        mis -> mis
+                ));
+
+        Set<Long> incomingSizeIds = new HashSet<>();
+
+        for (MenuItemSizeCreateRequest r : reqSizes) {
+            Long sizeId = r.getSizeId();
+            if (!incomingSizeIds.add(sizeId)) {
+                throw new RuntimeException("Duplicate sizeId in request: " + sizeId);
+            }
+
+            MenuItemSize mis = existingBySizeId.get(sizeId);
+
+            if (mis != null) {
+                // UPDATE
+                mis.setSellPrice(r.getSellPrice());
+                mis.setOriginalPrice(r.getOriginalPrice());
+                mis.setDescription(r.getDesc());
+            } else {
+                // INSERT new
+                Size size = sizeRepository.findById(sizeId)
+                        .orElseThrow(() -> new RuntimeException("Size not found: " + sizeId));
+
+                MenuItemSize newMis = new MenuItemSize();
+                newMis.setMenuItem(menuItem);
+                newMis.setSize(size);
+                newMis.setSellPrice(r.getSellPrice());
+                newMis.setOriginalPrice(r.getOriginalPrice());
+                newMis.setDescription(r.getDesc());
+
+                menuItem.getSizes().add(newMis);
+            }
+        }
+
+        // REMOVE sizes not in request
+        menuItem.getSizes().removeIf(mis -> {
+            boolean remove = !incomingSizeIds.contains(mis.getSize().getId());
+            if (remove) mis.setMenuItem(null); // helps orphanRemoval
+            return remove;
+        });
     }
 
 

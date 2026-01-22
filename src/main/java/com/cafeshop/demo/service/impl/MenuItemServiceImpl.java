@@ -212,7 +212,6 @@ public class MenuItemServiceImpl implements MenuItemService {
             }
         }
 
-        // REMOVE sizes not in request
         menuItem.getSizes().removeIf(mis -> {
             boolean remove = !incomingSizeIds.contains(mis.getSize().getId());
             if (remove) mis.setMenuItem(null); // helps orphanRemoval

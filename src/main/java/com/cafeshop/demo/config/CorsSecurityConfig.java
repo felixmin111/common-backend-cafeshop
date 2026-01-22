@@ -11,8 +11,8 @@ import java.util.List;
 
 @Configuration
 public class CorsSecurityConfig {
-    @Value("${app.cors.allowed-origins:}")
-    private String allowedOrigins;
+//    @Value("${app.cors.allowed-origins:}")
+    private String allowedOrigins="https://common-frontend-9e8d6a8b4262.herokuapp.com/";
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

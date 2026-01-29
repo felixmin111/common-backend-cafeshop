@@ -32,7 +32,6 @@ public class SizeServiceImpl implements SizeService {
 
     @Override
     public List<SizeResponse> findAll(Boolean active) {
-        // simple filter in memory (fine for small lists)
         return repo.findAll().stream()
                 .filter(s -> active == null || Boolean.TRUE.equals(s.getActive()) == active)
                 .map(this::toDto)
@@ -49,7 +48,6 @@ public class SizeServiceImpl implements SizeService {
     public SizeResponse update(Long id, SizeRequest req) {
         Size s = repo.findById(id).orElseThrow(() -> new RuntimeException("Size not found"));
 
-        // duplicate name check (only if changed)
         repo.findByNameIgnoreCase(req.name()).ifPresent(existing -> {
             if (!existing.getId().equals(id)) {
                 throw new RuntimeException("Size name already exists");
@@ -58,8 +56,9 @@ public class SizeServiceImpl implements SizeService {
 
         s.setName(req.name().trim());
         s.setShortName(req.shortName());
-        if (req.active() != null) s.setActive(req.active());
 
+        if (req.active() != null) s.setActive(req.active());
+        repo.save(s);
         return toDto(s);
     }
 

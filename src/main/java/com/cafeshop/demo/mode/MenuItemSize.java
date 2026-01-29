@@ -16,13 +16,11 @@ public class MenuItemSize {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Many rows belong to one MenuItem
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "menu_item_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_menu_item_sizes_menu_item"))
     private MenuItem menuItem;
 
-    // Many rows reference one Size
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "size_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_menu_item_sizes_size"))

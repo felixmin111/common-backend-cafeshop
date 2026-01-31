@@ -48,7 +48,7 @@ public class OrderPlaceController {
     }
     @GetMapping("/with-current-order")
     public ResponseEntity<List<OrderPlaceResponse>> getAllWithCurrentOrder() {
-        return ResponseEntity.ok(orderPlaceQueryService.getAllWithCurrentOrder());
+        return ResponseEntity.ok(orderPlaceQueryService.getOrderPlacesWithActiveOrders());
     }
 }
 

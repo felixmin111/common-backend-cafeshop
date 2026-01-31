@@ -1,8 +1,11 @@
 package com.cafeshop.demo.dto.orderPlace;
 
+import com.cafeshop.demo.dto.order.OrderResponse;
 import com.cafeshop.demo.mode.enums.OrderPlaceStatus;
 import com.cafeshop.demo.mode.enums.OrderStatus;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,6 +19,5 @@ public class OrderPlaceResponse {
     private String description;
     private OrderPlaceStatus status;
     private Integer seat;
-    private Long currentOrderId;
-    private OrderStatus currentOrderStatus;
+    private List<OrderResponse> activeOrders;
 }

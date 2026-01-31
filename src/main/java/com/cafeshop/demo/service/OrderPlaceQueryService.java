@@ -1,52 +1,69 @@
 package com.cafeshop.demo.service;
 
+import com.cafeshop.demo.dto.order.OrderResponse;
 import com.cafeshop.demo.dto.orderPlace.OrderPlaceResponse;
+import com.cafeshop.demo.mapper.OrderMapper;
+import com.cafeshop.demo.mapper.OrderPlaceMapper;
+import com.cafeshop.demo.mode.Order;
+import com.cafeshop.demo.mode.OrderPlace;
 import com.cafeshop.demo.mode.enums.OrderPlaceStatus;
 import com.cafeshop.demo.mode.enums.OrderStatus;
 import com.cafeshop.demo.repository.OrderPlaceRepository;
+import com.cafeshop.demo.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrderPlaceQueryService {
 
-    private final OrderPlaceRepository repo;
+    private final OrderPlaceRepository orderPlaceRepo;
+    private final OrderRepository orderRepo;
+    private final OrderPlaceMapper orderPlaceMapper;
+    private final OrderMapper orderMapper;
 
-    public List<OrderPlaceResponse> getAllWithCurrentOrder() {
+    public List<OrderPlaceResponse> getOrderPlacesWithActiveOrders() {
 
-        List<OrderStatus> active = List.of(
+        List<OrderStatus> activeStatuses = List.of(
                 OrderStatus.PENDING,
                 OrderStatus.CONFIRMED,
                 OrderStatus.PREPARING,
                 OrderStatus.READY
         );
 
-        return repo.findOrderPlacesWithCurrentOrder(active).stream().map(r -> {
+        List<OrderPlace> places = orderPlaceRepo.findAllByStatusNot(OrderPlaceStatus.DELETED);
+        if (places.isEmpty()) return List.of();
 
-            Long id = (Long) r[0];
-            String no = (String) r[1];
-            String type = (String) r[2];
-            String description = (String) r[3];
-            Integer seat = (Integer) r[4];
-            OrderPlaceStatus status = (OrderPlaceStatus) r[5];
+        List<Long> placeIds = places.stream().map(OrderPlace::getId).toList();
 
-            Long currentOrderId = (Long) r[6];
-            OrderStatus currentOrderStatus = (OrderStatus) r[7];
+        List<Order> activeOrders =
+                orderRepo.findByOrderPlace_IdInAndStatusIn(placeIds, activeStatuses);
+
+        // group: placeId -> List<OrderResponse>
+        Map<Long, List<OrderResponse>> activeMap =
+                activeOrders.stream()
+                        .collect(Collectors.groupingBy(
+                                o -> o.getOrderPlace().getId(),
+                                Collectors.mapping(orderMapper::toResponse, Collectors.toList())
+                        ));
+
+        return places.stream().map(op -> {
+            OrderPlaceResponse base = orderPlaceMapper.toResponse(op);
 
             return OrderPlaceResponse.builder()
-                    .id(id)
-                    .no(no)
-                    .type(type)
-                    .description(description)
-                    .seat(seat)
-                    .status(status)
-                    .currentOrderId(currentOrderId)
-                    .currentOrderStatus(currentOrderStatus)
+                    .id(base.getId())
+                    .no(base.getNo())
+                    .type(base.getType())
+                    .description(base.getDescription())
+                    .seat(base.getSeat())
+                    .status(base.getStatus())
+                    .activeOrders(activeMap.getOrDefault(op.getId(), List.of()))
                     .build();
         }).toList();
     }

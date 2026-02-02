@@ -16,10 +16,19 @@ public class OmiseSignatureVerifier {
     private String webhookSecretBase64;
 
     public void verify(String rawBody, String signatureHeader, String timestampHeader) {
+        System.out.println("signatureHeader: " + signatureHeader);
+        System.out.println("timestampHeader: " + timestampHeader);
 
         if (webhookSecretBase64 == null || webhookSecretBase64.isBlank()
                 || "your_webhook_secret_base64".equals(webhookSecretBase64)) {
             return;
+        }
+
+        if (signatureHeader == null || signatureHeader.isBlank()) {
+            throw new IllegalArgumentException("Missing Omise-Signature header");
+        }
+        if (timestampHeader == null || timestampHeader.isBlank()) {
+            throw new IllegalArgumentException("Missing Omise-Signature-Timestamp header");
         }
 
 

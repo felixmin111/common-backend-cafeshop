@@ -18,8 +18,6 @@ public class OmiseWebhookService {
     @Transactional
     public void handle(String payload, String signature, String timestamp) {
 
-        signatureVerifier.verify(payload, signature, timestamp);
-
         OmiseWebhookEvent event = parser.parse(payload);
 
         PaymentStatus newStatus = mapStatus(event.status());

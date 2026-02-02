@@ -12,24 +12,16 @@ import java.util.Base64;
 @Component
 public class OmiseSignatureVerifier {
 
-    @Value("${omise.webhook.secret:}") // default empty if not set
+    @Value("${omise.webhook.secret:}")
     private String webhookSecretBase64;
 
     public void verify(String rawBody, String signatureHeader, String timestampHeader) {
 
-        // ✅ 1) Allow Postman/dev testing by disabling verification when secret not configured
         if (webhookSecretBase64 == null || webhookSecretBase64.isBlank()
                 || "your_webhook_secret_base64".equals(webhookSecretBase64)) {
             return;
         }
 
-        // ✅ 2) In production, headers are required
-        if (signatureHeader == null || signatureHeader.isBlank()) {
-            throw new IllegalArgumentException("Missing Omise-Signature header");
-        }
-        if (timestampHeader == null || timestampHeader.isBlank()) {
-            throw new IllegalArgumentException("Missing Omise-Signature-Timestamp header");
-        }
 
         try {
             String signedPayload = timestampHeader + "." + (rawBody == null ? "" : rawBody);
@@ -40,26 +32,23 @@ public class OmiseSignatureVerifier {
             mac.init(new SecretKeySpec(secret, "HmacSHA256"));
             byte[] expected = mac.doFinal(signedPayload.getBytes(StandardCharsets.UTF_8));
 
-            // ✅ 3) Omise can send multiple signatures (rotation) -> try all
-            // Example: "abc..., def..." (comma-separated)
             String[] candidates = signatureHeader.split(",");
 
             for (String c : candidates) {
                 String sig = c.trim();
 
-                // must be hex and correct length (HMAC-SHA256 = 32 bytes = 64 hex chars)
                 if (!isHex(sig) || sig.length() != 64) continue;
 
                 byte[] provided = hexToBytes(sig);
                 if (MessageDigest.isEqual(provided, expected)) {
-                    return; // ✅ valid
+                    return;
                 }
             }
 
             throw new IllegalArgumentException("Invalid webhook signature");
 
         } catch (IllegalArgumentException e) {
-            throw e; // keep our clear messages
+            throw e;
         } catch (Exception e) {
             throw new IllegalArgumentException("Webhook signature verification failed: " + e.getMessage(), e);
         }

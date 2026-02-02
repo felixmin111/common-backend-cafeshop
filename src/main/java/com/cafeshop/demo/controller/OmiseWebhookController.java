@@ -1,5 +1,6 @@
 package com.cafeshop.demo.controller;
 
+import com.cafeshop.demo.service.webhook.OmiseSignatureVerifier;
 import com.cafeshop.demo.service.webhook.OmiseWebhookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,19 +12,18 @@ import org.springframework.web.bind.annotation.*;
 public class OmiseWebhookController {
 
     private final OmiseWebhookService omiseWebhookService;
+    private final OmiseSignatureVerifier verifier;
 
-    @PostMapping("/payments/webhook/omise")
-    public ResponseEntity<Void> handleWebhook(
-            @RequestBody String payload,
-            @RequestHeader(value = "Omise-Signature", required = false) String omiseSig,
-            @RequestHeader(value = "Omise-Signature-Timestamp", required = false) String omiseTs,
-            @RequestHeader(value = "X-Omise-Signature", required = false) String xSig,
-            @RequestHeader(value = "X-Omise-Signature-Timestamp", required = false) String xTs
+
+    @PostMapping(value = "/payments/webhook/omise", consumes = "application/json")
+    public ResponseEntity<Void> webhook(
+            @RequestBody String rawBody,
+            @RequestHeader(value = "Omise-Signature", required = false) String signature,
+            @RequestHeader(value = "Omise-Signature-Timestamp", required = false) String timestamp
     ) {
-        String signature = (omiseSig != null) ? omiseSig : xSig;
-        String timestamp = (omiseTs != null) ? omiseTs : xTs;
+        verifier.verify(rawBody, signature, timestamp);
 
-        omiseWebhookService.handle(payload, signature, timestamp);
+        omiseWebhookService.handle(rawBody, signature, timestamp);
         return ResponseEntity.ok().build();
     }
 }

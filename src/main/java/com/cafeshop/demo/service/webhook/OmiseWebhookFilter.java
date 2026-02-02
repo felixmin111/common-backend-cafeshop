@@ -24,10 +24,10 @@ public class OmiseWebhookFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String uri = request.getRequestURI();
-        if (!uri.startsWith("/api/payments/webhook/omise")) {
-            chain.doFilter(request, response);
-            return;
-        }
+//        if (!uri.startsWith("/api/payments/webhook/omise")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
 
         CachedBodyHttpServletRequest wrapped = new CachedBodyHttpServletRequest(request);
         String rawBody = new String(wrapped.getCachedBody(), StandardCharsets.UTF_8);

@@ -22,7 +22,6 @@ public class OmiseWebhookController {
             @RequestHeader(value = "Omise-Signature-Timestamp", required = false) String timestamp
     ) {
         verifier.verify(rawBody, signature, timestamp);
-
         omiseWebhookService.handle(rawBody, signature, timestamp);
         return ResponseEntity.ok().build();
     }

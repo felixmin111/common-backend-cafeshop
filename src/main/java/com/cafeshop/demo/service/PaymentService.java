@@ -2,7 +2,6 @@ package com.cafeshop.demo.service;
 
 import com.cafeshop.demo.dto.payment.PaymentCreateRequest;
 import com.cafeshop.demo.dto.payment.PaymentResponse;
-import com.cafeshop.demo.dto.payment.PaymentStatusUpdateRequest;
 import com.cafeshop.demo.mapper.PaymentMapper;
 import com.cafeshop.demo.mode.Order;
 import com.cafeshop.demo.mode.OrderPlace;
@@ -12,13 +11,13 @@ import com.cafeshop.demo.mode.enums.PaymentStatus;
 import com.cafeshop.demo.repository.OrderPlaceRepository;
 import com.cafeshop.demo.repository.OrderRepository;
 import com.cafeshop.demo.repository.PaymentRepository;
-import com.cafeshop.demo.utils.PromptPayQrUtils;
+import com.cafeshop.demo.service.omise.OmiseGatewayClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -30,6 +29,7 @@ public class PaymentService {
     private final OrderPlaceRepository orderPlaceRepo;
     private final OrderRepository orderRepo;
     private final PaymentMapper paymentMapper;
+    private final OmiseGatewayClient omiseGateway;
 
     public PaymentResponse create(PaymentCreateRequest req) {
         OrderPlace place = orderPlaceRepo.findById(req.getOrderPlaceId())
@@ -42,6 +42,9 @@ public class PaymentService {
         }
 
         PaymentMethod method = req.getMethod() == null ? PaymentMethod.PROMPTPAY_QR : req.getMethod();
+        String gateway = req.getGateway();
+
+        String referenceNo = "PAY-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
         Payment payment = Payment.builder()
                 .orderPlace(place)
@@ -49,17 +52,29 @@ public class PaymentService {
                 .amount(req.getAmount())
                 .method(method)
                 .status(PaymentStatus.PENDING)
-                .gateway(req.getGateway())
-                .gatewayPaymentId(req.getGatewayPaymentId())
-                .referenceNo("PAY-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16))
+                .gateway(gateway)
+                .referenceNo(referenceNo)
                 .build();
 
-        if (method == PaymentMethod.PROMPTPAY_QR) {
-            if (req.getPromptPayId() == null || req.getPromptPayId().isBlank()) {
-                throw new IllegalArgumentException("promptPayId is required for PROMPTPAY_QR");
-            }
+        if (method != PaymentMethod.PROMPTPAY_QR) {
+            throw new IllegalArgumentException("Only PROMPTPAY_QR supported in this example");
+        }
+
+        // ✅ Omise integration
+        if (!"OMISE".equalsIgnoreCase(gateway)) {
+            throw new IllegalArgumentException("gateway must be OMISE");
+        }
+
+        long amountSatang = toSatang(req.getAmount());
+
+        var result = omiseGateway.createPromptPayCharge(amountSatang, "THB", referenceNo);
+
+        payment.setGatewayPaymentId(result.chargeId()); // server-generated
+        payment.setQrPayload(result.qrPayload());
+        payment.setQrImageUrl(result.qrImageUrl());
+
+        if (req.getPromptPayId() != null && !req.getPromptPayId().isBlank()) {
             payment.setPromptPayId(req.getPromptPayId());
-            payment.setQrPayload(PromptPayQrUtils.buildPayload(req.getPromptPayId(), req.getAmount()));
         }
 
         return paymentMapper.toResponse(paymentRepo.save(payment));
@@ -71,20 +86,6 @@ public class PaymentService {
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + id)));
     }
 
-    @Transactional(readOnly = true)
-    public List<PaymentResponse> getByOrderPlace(Long orderPlaceId) {
-        return paymentRepo.findByOrderPlace_Id(orderPlaceId).stream()
-                .map(paymentMapper::toResponse).toList();
-    }
-
-    public PaymentResponse updateStatus(Long id, PaymentStatusUpdateRequest req) {
-        Payment payment = paymentRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + id));
-
-        payment.setStatus(req.getStatus());
-        return paymentMapper.toResponse(payment);
-    }
-    @Transactional
     public void updateStatusByGatewayPaymentId(String chargeId,
                                                PaymentStatus newStatus,
                                                String rawCallback) {
@@ -97,5 +98,10 @@ public class PaymentService {
         if (newStatus == PaymentStatus.PAID && payment.getPaidAt() == null) {
             payment.setPaidAt(OffsetDateTime.now());
         }
+    }
+
+    private long toSatang(BigDecimal thb) {
+        // 250.00 -> 25000
+        return thb.movePointRight(2).setScale(0, BigDecimal.ROUND_HALF_UP).longValueExact();
     }
 }

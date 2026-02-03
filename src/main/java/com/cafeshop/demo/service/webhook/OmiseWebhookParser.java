@@ -1,36 +1,39 @@
 package com.cafeshop.demo.service.webhook;
 
 import com.cafeshop.demo.dto.webhook.OmiseWebhookEvent;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
+@RequiredArgsConstructor
 public class OmiseWebhookParser {
 
-    private static final ObjectMapper OM = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     public OmiseWebhookEvent parse(String payload) {
         try {
-            JsonNode root = OM.readTree(payload);
+            JsonNode root = objectMapper.readTree(payload);
 
-            String chargeId = root.path("data").path("id").asText(null);
-            if (chargeId == null) chargeId = root.path("charge").path("id").asText(null);
+            String eventId = text(root, "id");
+            String key = text(root, "key");
 
-            String status = root.path("data").path("status").asText(null);
-            if (status == null) status = root.path("charge").path("status").asText(null);
+            JsonNode data = root.path("data");
+            String chargeId = text(data, "id");
+            String status = text(data, "status");
+            Long amount = data.path("amount").isNumber() ? data.get("amount").asLong() : null;
+            String currency = text(data, "currency");
 
-            if (chargeId == null || chargeId.isBlank()) {
-                throw new IllegalArgumentException("charge id not found in webhook payload");
-            }
-            if (status == null || status.isBlank()) {
-                throw new IllegalArgumentException("status not found in webhook payload");
-            }
-
-            return new OmiseWebhookEvent(chargeId, status);
+            return new OmiseWebhookEvent(eventId, key, chargeId, status, amount, currency);
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to parse webhook payload: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Invalid webhook payload: " + e.getMessage(), e);
         }
+    }
+
+    private String text(JsonNode node, String field) {
+        JsonNode v = node.get(field);
+        return (v == null || v.isNull()) ? null : v.asText();
     }
 }

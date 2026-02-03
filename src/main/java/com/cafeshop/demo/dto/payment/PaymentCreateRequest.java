@@ -13,24 +13,14 @@ import java.math.BigDecimal;
 @Builder
 public class PaymentCreateRequest {
 
-    @NotNull
-    private Long orderPlaceId;
-
-    // optional: pay for a single order
+    @NotNull private Long orderPlaceId;
     private Long orderId;
 
-    @NotNull
-    private BigDecimal amount;
+    @NotNull private BigDecimal amount;
 
-    // default PROMPTPAY_QR
-    private PaymentMethod method;
-
-    // required only for PROMPTPAY_QR (phone or id)
+    private PaymentMethod method;   // PROMPTPAY_QR
     private String promptPayId;
 
-    private String gatewayPaymentId;
-
-    private String gateway;
-
-
+    @NotNull
+    private String gateway; // "OMISE"
 }

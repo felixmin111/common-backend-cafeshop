@@ -10,15 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class OmiseWebhookService {
-
-    private final OmiseSignatureVerifier signatureVerifier;
     private final OmiseWebhookParser parser;
     private final PaymentService paymentService;
 
     @Transactional
-    public void handle(String payload, String signature, String timestamp) {
-
+    public void handle(String payload) {
         OmiseWebhookEvent event = parser.parse(payload);
+
+        // Only process charge events (optional safety)
+        if (event.chargeId() == null || event.status() == null) return;
 
         PaymentStatus newStatus = mapStatus(event.status());
 

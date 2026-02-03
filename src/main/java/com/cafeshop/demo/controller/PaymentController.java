@@ -28,17 +28,17 @@ public class PaymentController {
         return ResponseEntity.ok(service.getById(id));
     }
 
-    @GetMapping("/by-order-place/{orderPlaceId}")
-    public ResponseEntity<List<PaymentResponse>> byOrderPlace(@PathVariable Long orderPlaceId) {
-        return ResponseEntity.ok(service.getByOrderPlace(orderPlaceId));
-    }
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<PaymentResponse> updateStatus(
-            @PathVariable Long id,
-            @Valid @RequestBody PaymentStatusUpdateRequest req
-    ) {
-        return ResponseEntity.ok(service.updateStatus(id, req));
-    }
+//    @GetMapping("/by-order-place/{orderPlaceId}")
+//    public ResponseEntity<List<PaymentResponse>> byOrderPlace(@PathVariable Long orderPlaceId) {
+//        return ResponseEntity.ok(service.getByOrderPlace(orderPlaceId));
+//    }
+//
+//    @PatchMapping("/{id}/status")
+//    public ResponseEntity<PaymentResponse> updateStatus(
+//            @PathVariable Long id,
+//            @Valid @RequestBody PaymentStatusUpdateRequest req
+//    ) {
+//        return ResponseEntity.ok(service.updateStatus(id, req));
+//    }
 
 }

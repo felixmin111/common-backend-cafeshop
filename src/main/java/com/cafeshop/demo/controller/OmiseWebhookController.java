@@ -14,7 +14,6 @@ public class OmiseWebhookController {
     private final OmiseWebhookService omiseWebhookService;
     private final OmiseSignatureVerifier verifier;
 
-
     @PostMapping(value = "/payments/webhook/omise", consumes = "application/json")
     public ResponseEntity<Void> webhook(
             @RequestBody String rawBody,
@@ -22,7 +21,7 @@ public class OmiseWebhookController {
             @RequestHeader(value = "Omise-Signature-Timestamp", required = false) String timestamp
     ) {
         verifier.verify(rawBody, signature, timestamp);
-        omiseWebhookService.handle(rawBody, signature, timestamp);
+        omiseWebhookService.handle(rawBody);
         return ResponseEntity.ok().build();
     }
 }

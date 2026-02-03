@@ -75,4 +75,8 @@ public class Payment {
 
     @Column(name = "raw_callback", columnDefinition = "TEXT")
     private String rawCallback; // store webhook JSON (audit)
+
+    @Column(name = "qr_image_url", length = 1000)
+    private String qrImageUrl;
+
 }

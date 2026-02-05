@@ -65,7 +65,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getAll() {
-        return orderRepo.findAll().stream().map(mapper::toResponse).toList();
+        return orderRepo.findAllWithDetails().stream().map(mapper::toResponse).toList();
     }
 
     public OrderResponse update(Long id, OrderRequest req) {

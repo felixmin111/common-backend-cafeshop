@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MenuItemSizeResponse {
+    private long id;
     private Long menu_item_id;
     private Long size_id;
     private String name;

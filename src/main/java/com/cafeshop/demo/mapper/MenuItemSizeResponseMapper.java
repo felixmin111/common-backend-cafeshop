@@ -7,7 +7,7 @@ import com.cafeshop.demo.mode.MenuItemSize;
 
 @Mapper(componentModel = "spring")
 public interface MenuItemSizeResponseMapper {
-
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "menu_item_id", source = "menuItem.id")
     @Mapping(target = "size_id", source = "size.id")
     @Mapping(target = "name", source = "size.name")

@@ -1,4 +1,10 @@
 package com.cafeshop.demo.dto.order;
+
+import com.cafeshop.demo.dto.ingredient.IngredientResponse;
+import com.cafeshop.demo.dto.menuItem.MenuItemResponse;
+import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeResponse;
+import com.cafeshop.demo.dto.orderPlace.OrderPlaceResponse;
+import com.cafeshop.demo.dto.size.SizeResponse;
 import com.cafeshop.demo.mode.enums.OrderStatus;
 import lombok.*;
 
@@ -16,6 +22,12 @@ public class OrderResponse {
 
     private Long menuItemSizeId;
     private Long orderPlaceId;
+
+    private MenuItemResponse menuItem;
+    private SizeResponse size;
+    private OrderPlaceResponse orderPlace;
+    private MenuItemSizeResponse menuItemSize;
+    private IngredientResponse ingredient;
 
     private OrderStatus status;
 

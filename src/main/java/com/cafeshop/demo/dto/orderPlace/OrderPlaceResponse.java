@@ -20,4 +20,6 @@ public class OrderPlaceResponse {
     private OrderPlaceStatus status;
     private Integer seat;
     private List<OrderResponse> activeOrders;
+    private String qrValue;
+    private String qrUrl;
 }

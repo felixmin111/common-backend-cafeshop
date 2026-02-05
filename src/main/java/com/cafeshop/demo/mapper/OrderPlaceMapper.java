@@ -8,6 +8,8 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface OrderPlaceMapper {
+    @Mapping(target = "qrValue", ignore = true)
+    @Mapping(target = "qrUrl", ignore = true)
     OrderPlaceResponse toResponse(OrderPlace entity);
 
     // request -> entity (for create)

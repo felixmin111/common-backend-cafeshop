@@ -7,9 +7,12 @@ import com.cafeshop.demo.mode.OrderPlace;
 import com.cafeshop.demo.mode.enums.OrderPlaceStatus;
 import com.cafeshop.demo.repository.OrderPlaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -35,12 +38,39 @@ public class OrderPlaceService {
                 .orElseThrow(() -> new IllegalArgumentException("OrderPlace not found: " + id));
         return mapper.toResponse(entity);
     }
+    @Value("${app.cors.allowed-origins:}")
+    private String frontendBaseUrl;
 
     @Transactional(readOnly = true)
     public List<OrderPlaceResponse> getAllActive() {
-        return repo.findAllByStatusNot(OrderPlaceStatus.DELETED)
+        return repo.findAllByStatusNot(OrderPlaceStatus.INACTIVE)
                 .stream()
-                .map(mapper::toResponse)
+                .map(entity -> {
+                    // base mapping
+                    OrderPlaceResponse base = mapper.toResponse(entity);
+
+                    // computed fields
+                    String type = entity.getType();
+                    String no = entity.getNo();
+
+                    String qrValue = type + ":" + no;
+                    String qrUrl = frontendBaseUrl
+                            + "start?type=" + type
+                            + "&no=" + URLEncoder.encode(no, StandardCharsets.UTF_8);
+
+                    // return new record with extra fields
+                    return new OrderPlaceResponse(
+                            base.getId(),
+                            base.getNo(),
+                            base.getType(),
+                            base.getDescription(),
+                            base.getStatus(),
+                            base.getSeat(),
+                            base.getActiveOrders(),
+                            qrValue,
+                            qrUrl
+                    );
+                })
                 .toList();
     }
 

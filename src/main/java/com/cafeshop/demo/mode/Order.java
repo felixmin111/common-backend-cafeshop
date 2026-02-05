@@ -8,6 +8,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders") // ✅ use "orders" instead of "order"
@@ -20,24 +22,14 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "guest_id", length = 30)
-    private String guestId;
+    @Column(name = "customerName", length = 30)
+    private String customerName;
 
     @Column(name = "qty", nullable = false)
     private Long qty;
 
     @Column(name = "note", length = 100)
     private String note;
-
-    // FK: menu_item_size_id (you already have this table in your system)
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "menu_item_size_id", nullable = false)
-    private MenuItemSize menuItemSize;
-
-    // FK: place_order_id -> order_place.id
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "place_order_id", nullable = false)
-    private OrderPlace orderPlace;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 30, nullable = false)
@@ -57,4 +49,23 @@ public class Order {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    public void addIngredient(OrderIngredient oi) {
+        orderIngredients.add(oi);
+        oi.setOrder(this);
+    }
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<OrderIngredient> orderIngredients = new ArrayList<>();
+
+    // FK: menu_item_size_id (you already have this table in your system)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "menu_item_size_id", nullable = false)
+    private MenuItemSize menuItemSize;
+
+    // FK: place_order_id -> order_place.id
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "place_order_id", nullable = false)
+    private OrderPlace orderPlace;
 }

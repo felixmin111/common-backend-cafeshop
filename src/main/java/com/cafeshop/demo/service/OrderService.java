@@ -2,15 +2,11 @@ package com.cafeshop.demo.service;
 
 import com.cafeshop.demo.dto.order.OrderRequest;
 import com.cafeshop.demo.dto.order.OrderResponse;
+import com.cafeshop.demo.dto.orderIngredient.OrderIngredientRequest;
 import com.cafeshop.demo.mapper.OrderMapper;
-import com.cafeshop.demo.mode.MenuItemSize;
-import com.cafeshop.demo.mode.Order;
-import com.cafeshop.demo.mode.OrderPlace;
+import com.cafeshop.demo.mode.*;
 import com.cafeshop.demo.mode.enums.OrderStatus;
-import com.cafeshop.demo.repository.MenuItemRepository;
-import com.cafeshop.demo.repository.MenuItemSizeRepository;
-import com.cafeshop.demo.repository.OrderPlaceRepository;
-import com.cafeshop.demo.repository.OrderRepository;
+import com.cafeshop.demo.repository.*;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,33 +23,53 @@ public class OrderService {
     private final OrderRepository orderRepo;
     private final MenuItemSizeRepository menuItemSizeRepo;
     private final OrderPlaceRepository orderPlaceRepo;
+    private final IngredientRepository ingredientRepo;
     private final OrderMapper mapper;
 
     public OrderResponse create(OrderRequest req) {
+        System.out.println("Order Ingredients Request: " + req.getIngredients().size());
+        System.out.println("Order Ingredients Request: " + req.getIngredients().stream().toList().getFirst().toString());
+
         MenuItemSize size = menuItemSizeRepo.findById(req.getMenuItemSizeId())
                 .orElseThrow(() -> new IllegalArgumentException("MenuItemSize not found: " + req.getMenuItemSizeId()));
 
         OrderPlace place = orderPlaceRepo.findById(req.getOrderPlaceId())
                 .orElseThrow(() -> new IllegalArgumentException("OrderPlace not found: " + req.getOrderPlaceId()));
 
-        double unitPrice = size.getSellPrice();
-        BigDecimal unitPriceBD = BigDecimal.valueOf(unitPrice);
-        BigDecimal totalPrice =
-                unitPriceBD.multiply(BigDecimal.valueOf(req.getQty()));// assume MenuItemSize has getPrice()
-
+        BigDecimal unitPrice = BigDecimal.valueOf(size.getSellPrice());
+        BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(req.getQty()));
 
         Order entity = Order.builder()
-                .guestId(req.getGuestId())
+                .customerName(req.getCustomerName())
                 .qty(req.getQty())
                 .note(req.getNote())
                 .menuItemSize(size)
                 .orderPlace(place)
                 .status(req.getStatus() == null ? OrderStatus.PENDING : req.getStatus())
-                .unitPrice(unitPriceBD)
+                .unitPrice(unitPrice)
                 .totalPrice(totalPrice)
                 .build();
 
-        return mapper.toResponse(orderRepo.save(entity));
+        if (req.getIngredients() != null && !req.getIngredients().isEmpty()) {
+            for (OrderIngredientRequest ingReq : req.getIngredients()) {
+
+                Ingredient ingredient = ingredientRepo.findById(ingReq.getIngredientId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Ingredient not found: " + ingReq.getIngredientId()));
+                System.out.println("Ingredient Ingredients Request: " + ingredient.toString());
+
+                OrderIngredient oi = OrderIngredient.builder()
+                        .ingredient(ingredient)
+                        .qty(ingReq.getQty())
+                        .note(ingReq.getNote())
+                        .build();
+
+                entity.addIngredient(oi);
+            }
+        }
+
+        Order saved = orderRepo.save(entity);
+        return mapper.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -85,7 +101,7 @@ public class OrderService {
             entity.setOrderPlace(place);
         }
 
-        if (req.getGuestId() != null) entity.setGuestId(req.getGuestId());
+        if (req.getCustomerName() != null) entity.setCustomerName(req.getCustomerName());
         if (req.getQty() != null) entity.setQty(req.getQty());
         if (req.getNote() != null) entity.setNote(req.getNote());
         if (req.getStatus() != null) entity.setStatus(req.getStatus());

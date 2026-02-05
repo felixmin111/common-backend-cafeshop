@@ -3,8 +3,10 @@ package com.cafeshop.demo.mode;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
-@Getter @Setter
+@Data
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 @Table(name = "ingredients")
@@ -19,6 +21,9 @@ public class Ingredient {
 
     @Column(length = 60)
     private String amount;
+
+    @Column(name = "price", precision = 12, scale = 2, nullable = true)
+    private BigDecimal price;
 
     @Column(length = 255)
     private String note;

@@ -20,7 +20,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "menuItemSize.menuItem.tags",
             "menuItemSize.menuItem.sizes",
             "menuItemSize.size",
-            "orderPlace"
+            "orderPlace",
+            "orderIngredients",
+            "orderIngredients.ingredient"
     })
     @Query("select o from Order o")
     List<Order> findAllWithDetails();

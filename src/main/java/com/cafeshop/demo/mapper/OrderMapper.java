@@ -14,7 +14,8 @@ import java.util.List;
         uses = {
                 TagMapper.class,
                 IngredientMapper.class,
-                MenuItemSizeResponseMapper.class
+                MenuItemSizeResponseMapper.class,
+                OrderIngredientResponseMapper.class
         }
 )
 public interface OrderMapper {
@@ -34,16 +35,21 @@ public interface OrderMapper {
     @Mapping(target = "menuItem.categoryId", source = "menuItemSize.menuItem.category.id")
     @Mapping(target = "menuItem.categoryName", source = "menuItemSize.menuItem.category.name")
 
-    // ----- collections (require mappers in `uses`) -----
+    // ----- collections -----
     @Mapping(target = "menuItem.tags", source = "menuItemSize.menuItem.tags")
     @Mapping(target = "menuItem.ingredients", source = "menuItemSize.menuItem.ingredients")
     @Mapping(target = "menuItem.sizes", source = "menuItemSize.menuItem.sizes")
 
-    // ----- size object in OrderResponse -----
+    // ----- size object -----
     @Mapping(target = "size.id", source = "menuItemSize.size.id")
     @Mapping(target = "size.name", source = "menuItemSize.size.name")
     @Mapping(target = "size.shortName", source = "menuItemSize.size.shortName")
     @Mapping(target = "size.active", source = "menuItemSize.size.active")
+
+    // map order ingredients
+    @Mapping(target = "orderIngredients", source = "orderIngredients")
     OrderResponse toResponse(Order entity);
+
     List<OrderResponse> toResponseList(List<Order> entities);
 }
+

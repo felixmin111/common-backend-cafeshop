@@ -60,7 +60,6 @@ public class PaymentService {
             throw new IllegalArgumentException("Only PROMPTPAY_QR supported in this example");
         }
 
-        // ✅ Omise integration
         if (!"OMISE".equalsIgnoreCase(gateway)) {
             throw new IllegalArgumentException("gateway must be OMISE");
         }
@@ -69,7 +68,7 @@ public class PaymentService {
 
         var result = omiseGateway.createPromptPayCharge(amountSatang, "THB", referenceNo);
 
-        payment.setGatewayPaymentId(result.chargeId()); // server-generated
+        payment.setGatewayPaymentId(result.chargeId());
         payment.setQrPayload(result.qrPayload());
         payment.setQrImageUrl(result.qrImageUrl());
 
@@ -101,7 +100,6 @@ public class PaymentService {
     }
 
     private long toSatang(BigDecimal thb) {
-        // 250.00 -> 25000
         return thb.movePointRight(2).setScale(0, BigDecimal.ROUND_HALF_UP).longValueExact();
     }
 }

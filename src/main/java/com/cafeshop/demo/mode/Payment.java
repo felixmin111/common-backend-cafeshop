@@ -1,5 +1,6 @@
 package com.cafeshop.demo.mode;
 
+import com.cafeshop.demo.mode.enums.OrderStatus;
 import com.cafeshop.demo.mode.enums.PaymentMethod;
 import com.cafeshop.demo.mode.enums.PaymentStatus;
 import jakarta.persistence.*;
@@ -38,7 +39,7 @@ public class Payment {
     private PaymentMethod method;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 30, nullable = false)
+    @Column(nullable = false)
     private PaymentStatus status;
 
     @Column(name = "amount", precision = 12, scale = 2, nullable = false)
@@ -78,5 +79,20 @@ public class Payment {
 
     @Column(name = "qr_image_url", length = 1000)
     private String qrImageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(
+            name = "invoice_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "fk_payments_invoice")
+    )
+    private Invoice invoice;
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) status = PaymentStatus.PENDING;
+        if (createdAt == null) createdAt = OffsetDateTime.now();
+        if (updatedAt == null) updatedAt = OffsetDateTime.now();
+    }
 
 }

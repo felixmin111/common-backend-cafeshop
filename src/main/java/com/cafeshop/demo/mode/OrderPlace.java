@@ -8,6 +8,7 @@ import lombok.*;
 @Table(name = "order_place")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

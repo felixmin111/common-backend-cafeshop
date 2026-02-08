@@ -9,7 +9,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "orders") // ✅ use "orders" instead of "order"
@@ -55,9 +57,8 @@ public class Order {
         oi.setOrder(this);
     }
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<OrderIngredient> orderIngredients = new ArrayList<>();
+    @OneToMany(mappedBy = "order")
+    private Set<OrderIngredient> orderIngredients = new HashSet<>();
 
     // FK: menu_item_size_id (you already have this table in your system)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -68,4 +69,16 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "place_order_id", nullable = false)
     private OrderPlace orderPlace;
+
+    @OneToMany(mappedBy = "order")
+    private List<InvoiceOrder> invoiceOrders = new ArrayList<>();
+
+
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) status = OrderStatus.PENDING; // or CONFIRMED
+        if (createdAt == null) createdAt = OffsetDateTime.now();
+        if (updatedAt == null) updatedAt = OffsetDateTime.now();
+    }
 }

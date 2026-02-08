@@ -11,25 +11,41 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class PaymentResponse {
+
     private Long id;
 
     private Long orderPlaceId;
-    private Long orderId;
 
+    // Payment fields
     private BigDecimal amount;
     private PaymentMethod method;
     private PaymentStatus status;
 
     private String gateway;
-    private String gatewayPaymentId; // Omise charge id
-
+    private String gatewayPaymentId;
     private String referenceNo;
 
-    // QR info for client
     private String qrPayload;
     private String qrImageUrl;
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
     private OffsetDateTime paidAt;
+
+    // ✅ Invoice summary
+    private Long invoiceId;
+    private String invoiceNo;
+    private String customerName;
+    private String invoiceStatus;
+
+    private BigDecimal subTotal;
+    private BigDecimal tax;
+    private BigDecimal deliveryFee;
+    private BigDecimal grandTotal;
+
+    private OffsetDateTime appliedAt;
+
+    // ✅ Items in this payment/invoice
+    private java.util.List<PaymentItemResponse> items;
 }
+

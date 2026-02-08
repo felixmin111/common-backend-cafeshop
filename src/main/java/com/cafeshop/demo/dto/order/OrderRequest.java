@@ -13,18 +13,17 @@ import java.util.Set;
 @Builder
 public class OrderRequest {
 
-    private String customerName;
-
     @NotNull
     private Long qty;
+
+    private Long orderPlaceId;
+
+    private String customerName;
 
     private String note;
 
     @NotNull
     private Long menuItemSizeId;
-
-    @NotNull
-    private Long orderPlaceId;
 
     private OrderStatus status;
 

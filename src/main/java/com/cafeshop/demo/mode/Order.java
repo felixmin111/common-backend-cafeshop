@@ -57,7 +57,8 @@ public class Order {
         oi.setOrder(this);
     }
 
-    @OneToMany(mappedBy = "order")
+    @Builder.Default
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderIngredient> orderIngredients = new HashSet<>();
 
     // FK: menu_item_size_id (you already have this table in your system)

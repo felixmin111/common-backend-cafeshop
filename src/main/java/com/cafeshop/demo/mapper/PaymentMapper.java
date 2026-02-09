@@ -4,6 +4,7 @@ package com.cafeshop.demo.mapper;
 import com.cafeshop.demo.dto.payment.PaymentIngredientResponse;
 import com.cafeshop.demo.dto.payment.PaymentItemResponse;
 import com.cafeshop.demo.dto.payment.PaymentResponse;
+import com.cafeshop.demo.mode.InvoiceOrder;
 import com.cafeshop.demo.mode.OrderIngredient;
 import com.cafeshop.demo.mode.Payment;
 import org.mapstruct.Mapper;
@@ -37,7 +38,7 @@ public interface PaymentMapper {
             target = "ingredients",
             source = "order.orderIngredients"
     )
-    PaymentItemResponse toItem(com.cafeshop.demo.mode.InvoiceOrder io);
+    PaymentItemResponse toItem(InvoiceOrder io);
 
     @Mapping(target = "ingredientId", source = "ingredient.id")
     @Mapping(target = "name", source = "ingredient.name")

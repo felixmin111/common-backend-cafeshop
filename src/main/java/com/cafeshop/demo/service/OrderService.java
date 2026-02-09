@@ -28,7 +28,6 @@ public class OrderService {
 
     public OrderResponse create(OrderRequest req) {
         System.out.println("Order Ingredients Request: " + req.getIngredients().size());
-        System.out.println("Order Ingredients Request: " + req.getIngredients().stream().toList().getFirst().toString());
 
         MenuItemSize size = menuItemSizeRepo.findById(req.getMenuItemSizeId())
                 .orElseThrow(() -> new IllegalArgumentException("MenuItemSize not found: " + req.getMenuItemSizeId()));
@@ -69,12 +68,13 @@ public class OrderService {
         }
 
         Order saved = orderRepo.save(entity);
+        System.out.println("Order created: " + saved.toString());
         return mapper.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
     public OrderResponse getById(Long id) {
-        Order entity = orderRepo.findById(id)
+        Order entity = orderRepo.findOrderDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + id));
         return mapper.toResponse(entity);
     }

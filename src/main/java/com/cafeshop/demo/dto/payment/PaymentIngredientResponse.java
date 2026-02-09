@@ -14,4 +14,5 @@ public class PaymentIngredientResponse {
     private String name;
     private BigDecimal qty;
     private String note;
+    private String price;
 }

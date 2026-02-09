@@ -2,14 +2,11 @@ package com.cafeshop.demo.controller;
 
 import com.cafeshop.demo.dto.payment.PaymentCreateRequest;
 import com.cafeshop.demo.dto.payment.PaymentResponse;
-import com.cafeshop.demo.dto.payment.PaymentStatusUpdateRequest;
-import com.cafeshop.demo.service.PaymentService;
+import com.cafeshop.demo.service.payment.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/payments")

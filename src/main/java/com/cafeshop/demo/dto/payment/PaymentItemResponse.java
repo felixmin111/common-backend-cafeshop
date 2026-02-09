@@ -4,6 +4,7 @@ import com.cafeshop.demo.dto.ingredient.IngredientResponse;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -23,6 +24,5 @@ public class PaymentItemResponse {
     private BigDecimal lineTotal;
     private String note;
 
-    // optional: ingredient list
-    private java.util.List<IngredientResponse> ingredients;
+    private Set<PaymentIngredientResponse> ingredients;
 }

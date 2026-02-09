@@ -2,7 +2,7 @@ package com.cafeshop.demo.service.webhook;
 
 import com.cafeshop.demo.dto.webhook.OmiseWebhookEvent;
 import com.cafeshop.demo.mode.enums.PaymentStatus;
-import com.cafeshop.demo.service.PaymentService;
+import com.cafeshop.demo.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

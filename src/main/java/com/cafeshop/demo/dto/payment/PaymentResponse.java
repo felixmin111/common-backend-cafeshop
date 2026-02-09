@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Set;
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
@@ -46,6 +47,6 @@ public class PaymentResponse {
     private OffsetDateTime appliedAt;
 
     // ✅ Items in this payment/invoice
-    private java.util.List<PaymentItemResponse> items;
+    private Set<PaymentItemResponse> items;
 }
 

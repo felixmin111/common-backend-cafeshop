@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter @Setter
 public class IngredientUpsertRequest {
 
@@ -11,7 +13,7 @@ public class IngredientUpsertRequest {
 
     @NotBlank
     private String name;
-
+    private BigDecimal price;
     private String amount;
     private String note;
 }

@@ -14,11 +14,15 @@ import java.util.Set;
 public interface MenuItemCreateRequestMapper {
     MenuItemCreateRequest toDto(MenuItem entity);
 
-    @Mapping(target = "sizes", ignore = true)
+    @Mapping(target="ingredients", ignore=true)
+    @Mapping(target="sizes", ignore=true)
+    @Mapping(target="tags", ignore=true)
     MenuItem toEntity(MenuItemCreateRequest dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "sizes", ignore = true)
+    @Mapping(target="ingredients", ignore=true)
+    @Mapping(target="sizes", ignore=true)
+    @Mapping(target="tags", ignore=true)
     void updateEntityFromDto(MenuItemCreateRequest dto, @MappingTarget MenuItem entity);
 }
 

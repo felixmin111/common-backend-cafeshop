@@ -1,10 +1,8 @@
 package com.cafeshop.demo.dto.menuItem;
-
-import com.cafeshop.demo.dto.ingredient.IngredientCreateRequest;
 import com.cafeshop.demo.dto.ingredient.IngredientUpsertRequest;
-import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeCreateRequest;
 import com.cafeshop.demo.mode.enums.AvailableIn;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -35,6 +33,10 @@ public class MenuItemCreateRequest {
     @NotBlank
     private String internalNote;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
+
     @NotNull(message = "categoryId is required")
     private Long categoryId;
 
@@ -42,8 +44,8 @@ public class MenuItemCreateRequest {
     @NotEmpty(message = "tagIds cannot be empty")
     private Set<Long> tagIds;
 
-    private Set<MenuItemSizeCreateRequest> sizes;
-    private Set<IngredientCreateRequest> ingredients;
+    private Set<MenuItemSizeUpsertRequest> sizes;
+    private Set<IngredientUpsertRequest> ingredients;
 
 
 }

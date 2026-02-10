@@ -40,6 +40,9 @@ public class MenuItem extends AuditableEntity{
     @Column(nullable = false)
     private String internalNote;
 
+    @Column(nullable = true)
+    private Boolean active = true;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_menu_item_category"))

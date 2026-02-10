@@ -34,5 +34,8 @@ public class MenuItemSize {
 
     @Column(name = "description", length = 300)
     private String description;
+
+    @Column(nullable = true)
+    private Boolean active = true;
 }
 

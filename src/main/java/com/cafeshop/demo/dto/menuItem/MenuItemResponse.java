@@ -7,10 +7,12 @@ import com.cafeshop.demo.mode.enums.AvailableIn;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Set;
 
 @Getter
+@Setter
 @Builder
 public class MenuItemResponse {
     private Long id;
@@ -20,7 +22,7 @@ public class MenuItemResponse {
     private MenuItemStatus status;
     private AvailableIn availableIn;
     private String internalNote;
-
+    private boolean active;
     private Long categoryId;
     private String categoryName;
     private Set<TagResponse> tags;

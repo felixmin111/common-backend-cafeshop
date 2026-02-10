@@ -13,4 +13,5 @@ public class IngredientCreateRequest {
     private String amount;
     private String note;
     private BigDecimal price;
+
 }

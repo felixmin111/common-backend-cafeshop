@@ -14,6 +14,8 @@ import com.cafeshop.demo.repository.MenuItemRepository;
 import com.cafeshop.demo.repository.SizeRepository;
 import com.cafeshop.demo.repository.TagRepository;
 import com.cafeshop.demo.service.MenuItemService;
+import com.cafeshop.demo.service.menuItem.IngredientSynchronizer;
+import com.cafeshop.demo.service.menuItem.MenuItemSizeSynchronizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,16 +29,16 @@ import java.util.Set;
 public class MenuItemServiceImpl implements MenuItemService {
     private final MenuItemCreateRequestMapper menuItemCreateRequestMapper;
     private final MenuItemResponseMapper menuItemResponseMapper;
-    private final IngredientMapper ingredientMapper;
     private final MenuItemRepository repository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepo;
-    private final SizeRepository sizeRepository;
+
+    private final MenuItemSizeSynchronizer menuItemSizeSynchronizer;
+    private final IngredientSynchronizer ingredientSynchronizer;
 
 
     @Override
     public MenuItemResponse create(MenuItemCreateRequest request) {
-
         repository.findBySku(request.getSku()).ifPresent(m -> {
             throw new RuntimeException("SKU already exists");
         });
@@ -47,13 +49,14 @@ public class MenuItemServiceImpl implements MenuItemService {
         MenuItem menuItem = menuItemCreateRequestMapper.toEntity(request);
         menuItem.setCategory(category);
 
-        menuItem.getSizes().clear();
-        menuItem.getSizes().addAll(buildMenuItemSizes(menuItem, request.getSizes()));
-
         menuItem.setTags(resolveTags(request.getTagIds()));
 
         menuItem.getIngredients().clear();
-        menuItem.getIngredients().addAll(buildIngredients(menuItem, request.getIngredients()));
+        menuItem.getSizes().clear();
+
+        // Sync children (will insert active=true)
+        menuItemSizeSynchronizer.sync(menuItem, request.getSizes());
+        ingredientSynchronizer.sync(menuItem, request.getIngredients());
 
 
         return menuItemResponseMapper.toDto(repository.save(menuItem));
@@ -102,14 +105,11 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     @Override
     public MenuItemResponse update(Long id, MenuItemCreateRequest request) {
-
         MenuItem existing = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("MenuItem not found: " + id));
 
         repository.findBySku(request.getSku()).ifPresent(found -> {
-            if (!found.getId().equals(id)) {
-                throw new RuntimeException("SKU already exists");
-            }
+            if (!found.getId().equals(id)) throw new RuntimeException("SKU already exists");
         });
 
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -121,103 +121,14 @@ public class MenuItemServiceImpl implements MenuItemService {
         existing.getTags().clear();
         existing.getTags().addAll(resolveTags(request.getTagIds()));
 
-        syncMenuItemSizes(existing, request.getSizes());
+//        existing.getIngredients().clear();
+//        existing.getSizes().clear();
 
-        existing.getIngredients().clear();
-        existing.getIngredients().addAll(buildIngredients(existing, request.getIngredients()));
+        // ✅ Soft-delete + versioning sync
+        menuItemSizeSynchronizer.sync(existing, request.getSizes());
+        ingredientSynchronizer.sync(existing, request.getIngredients());
 
-        MenuItem saved = repository.save(existing);
-        return menuItemResponseMapper.toDto(saved);
+        return menuItemResponseMapper.toDto(repository.save(existing));
     }
-
-    private Set<MenuItemSize> buildMenuItemSizes(MenuItem menuItem, Set<MenuItemSizeCreateRequest> sizeDtos) {
-        if (sizeDtos == null || sizeDtos.isEmpty()) return new HashSet<>();
-        Set<Long> sizeIds = sizeDtos.stream().map(MenuItemSizeCreateRequest::getSizeId).collect(java.util.stream.Collectors.toSet());
-        List<Size> sizes = sizeRepository.findAllById(sizeIds);
-        if (sizes.size() != sizeIds.size()) {
-            throw new RuntimeException("Some sizeIds are invalid");
-        }
-        var sizeMap = sizes.stream().collect(java.util.stream.Collectors.toMap(Size::getId, s -> s));
-
-        Set<MenuItemSize> result = new HashSet<>();
-        for (MenuItemSizeCreateRequest dto : sizeDtos) {
-            Size size = sizeMap.get(dto.getSizeId());
-
-            if (dto.getSellPrice() == null) {
-                throw new RuntimeException("sellPrice is required for sizeId=" + dto.getSizeId());
-            }
-
-            result.add(MenuItemSize.builder()
-                    .menuItem(menuItem)
-                    .size(size)
-                    .originalPrice(dto.getOriginalPrice())
-                    .sellPrice(dto.getSellPrice())
-                    .description(dto.getDesc())
-                    .build());
-        }
-        return result;
-    }
-
-    private Set<Ingredient> buildIngredients(
-            MenuItem menuItem,
-            Set<IngredientCreateRequest> ingredientDtos
-    ) {
-        if (ingredientDtos == null || ingredientDtos.isEmpty()) return new HashSet<>();
-
-        Set<Ingredient> result = new HashSet<>();
-        for (var dto : ingredientDtos) {
-            Ingredient ing = ingredientMapper.toEntity(dto);
-            ing.setMenuItem(menuItem);
-            result.add(ing);
-        }
-        return result;
-    }
-
-    private void syncMenuItemSizes(MenuItem menuItem, Set<MenuItemSizeCreateRequest> reqSizes) {
-
-        Map<Long, MenuItemSize> existingBySizeId = menuItem.getSizes().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        mis -> mis.getSize().getId(),
-                        mis -> mis
-                ));
-
-        Set<Long> incomingSizeIds = new HashSet<>();
-
-        for (MenuItemSizeCreateRequest r : reqSizes) {
-            Long sizeId = r.getSizeId();
-            if (!incomingSizeIds.add(sizeId)) {
-                throw new RuntimeException("Duplicate sizeId in request: " + sizeId);
-            }
-
-            MenuItemSize mis = existingBySizeId.get(sizeId);
-
-            if (mis != null) {
-                // UPDATE
-                mis.setSellPrice(r.getSellPrice());
-                mis.setOriginalPrice(r.getOriginalPrice());
-                mis.setDescription(r.getDesc());
-            } else {
-                // INSERT new
-                Size size = sizeRepository.findById(sizeId)
-                        .orElseThrow(() -> new RuntimeException("Size not found: " + sizeId));
-
-                MenuItemSize newMis = new MenuItemSize();
-                newMis.setMenuItem(menuItem);
-                newMis.setSize(size);
-                newMis.setSellPrice(r.getSellPrice());
-                newMis.setOriginalPrice(r.getOriginalPrice());
-                newMis.setDescription(r.getDesc());
-
-                menuItem.getSizes().add(newMis);
-            }
-        }
-
-        menuItem.getSizes().removeIf(mis -> {
-            boolean remove = !incomingSizeIds.contains(mis.getSize().getId());
-            if (remove) mis.setMenuItem(null); // helps orphanRemoval
-            return remove;
-        });
-    }
-
 
 }

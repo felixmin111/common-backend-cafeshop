@@ -14,4 +14,5 @@ public class MenuItemSizeResponse {
     private Double originalPrice;
     private Double sellPrice;
     private String description;
+    private Boolean active;
 }

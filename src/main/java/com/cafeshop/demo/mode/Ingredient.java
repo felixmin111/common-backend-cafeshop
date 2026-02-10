@@ -28,6 +28,9 @@ public class Ingredient {
     @Column(length = 255)
     private String note;
 
+    @Column(nullable = true)
+    private Boolean active = true;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "menu_item_id", nullable = false)
     private MenuItem menuItem;

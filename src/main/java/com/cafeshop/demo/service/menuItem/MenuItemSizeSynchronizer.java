@@ -62,7 +62,6 @@ public class MenuItemSizeSynchronizer {
             }
         }
 
-        // ✅ Soft-delete missing sizes
         menuItem.getSizes().forEach(mis -> {
             Long sizeId = mis.getSize().getId();
             if (!incomingSizeIds.contains(sizeId)) {

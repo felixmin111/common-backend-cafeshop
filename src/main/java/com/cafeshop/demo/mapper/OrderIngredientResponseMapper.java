@@ -12,6 +12,7 @@ public interface OrderIngredientResponseMapper {
 
     @Mapping(target = "ingredientId", source = "ingredient.id")
     @Mapping(target = "ingredientName", source = "ingredient.name")
+    @Mapping(target = "price", source = "ingredient.price")
     OrderIngredientResponse toResponse(OrderIngredient entity);
 
     List<OrderIngredientResponse> toResponseList(List<OrderIngredient> entities);

@@ -31,4 +31,14 @@ public interface OrderPlaceRepository extends JpaRepository<OrderPlace, Long> {
         order by op.id asc
     """)
     List<Object[]> findOrderPlacesWithCurrentOrder(@Param("activeStatuses") List<OrderStatus> activeStatuses);
+
+
+    Long countByStatus(OrderPlaceStatus status);
+
+    @Query("""
+        SELECT COUNT(op)
+        FROM OrderPlace op
+        WHERE op.status <> com.cafeshop.demo.mode.enums.OrderPlaceStatus.DELETED
+    """)
+    Long countAllActiveTables();
 }

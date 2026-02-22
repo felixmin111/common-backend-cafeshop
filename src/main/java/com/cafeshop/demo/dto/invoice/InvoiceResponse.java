@@ -22,6 +22,8 @@ public record InvoiceResponse(
 
         Long orderPlaceId,
         String orderPlaceName,
+        String no,
+        String type,
 
         Set<InvoiceOrderLineResponse> orders,
         Set<PaymentResponse> payments

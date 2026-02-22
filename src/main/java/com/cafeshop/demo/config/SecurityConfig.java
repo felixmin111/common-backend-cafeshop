@@ -42,7 +42,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**",
                                          "/api/admin/menu-items",
-                                          "/api/payments/webhook/omise").permitAll()
+                                          "/api/payments/webhook/omise",
+                                          "/api/payments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items/*").permitAll()
                         .anyRequest().authenticated()
                 )

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -63,5 +64,9 @@ public class MenuItem extends AuditableEntity{
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Ingredient> ingredients = new HashSet<>();
+
+    @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<MenuItemImage> images = new java.util.ArrayList<>();
 
 }

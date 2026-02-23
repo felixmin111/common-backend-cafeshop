@@ -1,5 +1,6 @@
 package com.cafeshop.demo.dto.menuItem;
 
+import com.cafeshop.demo.dto.menuItemImage.MenuItemImageDto;
 import com.cafeshop.demo.dto.ingredient.IngredientResponse;
 import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeResponse;
 import com.cafeshop.demo.dto.tag.TagResponse;
@@ -9,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -28,5 +30,6 @@ public class MenuItemResponse {
     private Set<TagResponse> tags;
     private Set<MenuItemSizeResponse> sizes;
     private Set<IngredientResponse> ingredients;
+    private List<MenuItemImageDto> images;
 
 }

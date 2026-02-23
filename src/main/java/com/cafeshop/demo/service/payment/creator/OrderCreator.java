@@ -22,7 +22,6 @@ public class OrderCreator {
     private final MenuItemSizeRepository menuItemSizeRepo;
 
     public void createOrders(Invoice invoice, List<OrderRequest> items) {
-
         BigDecimal subTotal = BigDecimal.ZERO;
 
         for (OrderRequest itemReq : items) {
@@ -30,8 +29,24 @@ public class OrderCreator {
             MenuItemSize mis = menuItemSizeRepo.findById(itemReq.getMenuItemSizeId())
                     .orElseThrow(() -> new IllegalArgumentException("MenuItemSize not found"));
 
-            Order order = createOrder(invoice.getOrderPlace(), mis, itemReq);
-            createIngredients(order, itemReq);
+            BigDecimal baseUnitPrice = BigDecimal.valueOf(mis.getSellPrice()); // check sellPrice type!
+            BigDecimal ingUnitTotal = calcIngredientUnitTotal(itemReq);        // ✅ new
+            BigDecimal unitTotal = baseUnitPrice.add(ingUnitTotal);            // ✅ base + ingredients
+            BigDecimal lineTotal = unitTotal.multiply(BigDecimal.valueOf(itemReq.getQty())); // ✅ * qty
+
+            Order order = Order.builder()
+                    .orderPlace(invoice.getOrderPlace())
+                    .menuItemSize(mis)
+                    .qty(itemReq.getQty())
+                    .unitPrice(unitTotal)         // ✅ include ingredients in unit price (optional)
+                    .totalPrice(lineTotal)        // ✅ correct total
+                    .status(OrderStatus.PENDING)
+                    .note(itemReq.getNote())
+                    .build();
+
+            order = orderRepo.save(order);
+
+            createIngredients(order, itemReq);     // keep this
             createInvoiceOrder(invoice, order, mis, itemReq);
 
             subTotal = subTotal.add(order.getTotalPrice());
@@ -39,8 +54,26 @@ public class OrderCreator {
 
         invoice.setSubTotal(subTotal);
         invoice.setGrandTotal(subTotal
-                .add(invoice.getTax())
-                .add(invoice.getDeliveryFee()));
+                .add(nvl(invoice.getTax()))
+                .add(nvl(invoice.getDeliveryFee())));
+    }
+    private BigDecimal calcIngredientUnitTotal(OrderRequest req) {
+        if (req.getIngredients() == null || req.getIngredients().isEmpty()) return BigDecimal.ZERO;
+
+        BigDecimal sum = BigDecimal.ZERO;
+        for (com.cafeshop.demo.dto.orderIngredient.OrderIngredientRequest ingReq : req.getIngredients()) {
+            Ingredient ing = ingredientRepo.findById(ingReq.getIngredientId())
+                    .orElseThrow(() -> new IllegalArgumentException("Ingredient not found: " + ingReq.getIngredientId()));
+
+            BigDecimal ingPrice = nvl(ing.getPrice()); // ingredient price in DB
+            BigDecimal ingQty = nvl(ingReq.getQty());  // qty from request
+            sum = sum.add(ingPrice.multiply(ingQty));
+        }
+        return sum;
+    }
+
+    private BigDecimal nvl(BigDecimal v) {
+        return v == null ? BigDecimal.ZERO : v;
     }
 
     private Order createOrder(OrderPlace place, MenuItemSize mis, OrderRequest req) {

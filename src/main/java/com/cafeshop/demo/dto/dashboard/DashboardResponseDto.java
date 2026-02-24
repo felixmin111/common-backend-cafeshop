@@ -1,4 +1,4 @@
-package com.cafeshop.demo.dto;
+package com.cafeshop.demo.dto.dashboard;
 
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ public class DashboardResponseDto {
     private Long yesterdayOrders;
     private Double orderGrowthPercent;
 
-    private Double todayProfitBaht;
+    private BigDecimal todayProfitBaht;
     private Double profitGrowthPercent;
 
     private Long activeTables;

@@ -1,22 +1,22 @@
 package com.cafeshop.demo.service;
 
-import com.cafeshop.demo.dto.DashboardResponseDto;
-import com.cafeshop.demo.dto.RevenuePointDto;
+import com.cafeshop.demo.dto.dashboard.CategoryOrderCountDto;
+import com.cafeshop.demo.dto.dashboard.DashboardResponseDto;
+import com.cafeshop.demo.dto.dashboard.RevenuePointDto;
 import com.cafeshop.demo.mode.enums.OrderPlaceStatus;
 import com.cafeshop.demo.mode.enums.RevenueFilterType;
 import com.cafeshop.demo.repository.OrderPlaceRepository;
 import com.cafeshop.demo.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.IsoFields;
+import java.time.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +42,8 @@ public class DashboardService {
         Double orderGrowth = calculateGrowth(todayOrders, yesterdayOrders);
 
         // PROFIT (Baht difference)
-        Double todayProfit = orderRepository.sumProfitBetween(todayStart, todayEnd);
-        Double yesterdayProfit = orderRepository.sumProfitBetween(yesterdayStart, yesterdayEnd);
+        BigDecimal todayProfit = orderRepository.sumRevenueBetween(todayStart, todayEnd);
+        BigDecimal yesterdayProfit = orderRepository.sumRevenueBetween(yesterdayStart, yesterdayEnd);
 
         Double profitGrowth = calculateGrowth(todayProfit, yesterdayProfit);
 
@@ -81,35 +81,60 @@ public class DashboardService {
         return ((today.doubleValue() - y) / y) * 100;
     }
 
-    public List<RevenuePointDto> getRevenueChart(RevenueFilterType type) {
+    public List<RevenuePointDto> getRevenueChart(
+            RevenueFilterType type,
+            String period
+    ) {
 
         ZoneId zone = ZoneId.of("Asia/Bangkok");
-        List<RevenuePointDto> result = new ArrayList<>();
-
-        ZonedDateTime now = ZonedDateTime.now(zone);
 
         switch (type) {
 
             case DAILY -> {
-                // last 7 days
-                for (int i = 6; i >= 0; i--) {
-                    ZonedDateTime start = now.minusDays(i).toLocalDate().atStartOfDay(zone);
-                    ZonedDateTime end = start.plusDays(1);
 
-                    Double revenue = orderRepository.sumProfitBetween(
-                            start.toOffsetDateTime(),
-                            end.toOffsetDateTime()
+                LocalDate selected =
+                        period != null
+                                ? LocalDate.parse(period)
+                                : LocalDate.now(zone);
+
+                LocalDate startDate = selected.minusDays(6);
+                LocalDate endDate = selected.plusDays(1);
+
+                OffsetDateTime start = startDate.atStartOfDay(zone).toOffsetDateTime();
+                OffsetDateTime end = endDate.atStartOfDay(zone).toOffsetDateTime();
+
+                List<Object[]> rows =
+                        orderRepository.sumProfitBetween(start, end);
+
+                Map<LocalDate, BigDecimal> revenueMap = new HashMap<>();
+
+                for (Object[] row : rows) {
+                    revenueMap.put(
+                            (LocalDate) row[0],      // ✅ FIXED HERE
+                            (BigDecimal) row[1]
                     );
-
-                    result.add(new RevenuePointDto(
-                            start.getDayOfWeek().name().substring(0,3),
-                            revenue
-                    ));
                 }
+
+                List<RevenuePointDto> result = new ArrayList<>();
+
+                for (int i = 0; i < 7; i++) {
+                    LocalDate date = startDate.plusDays(i);
+
+                    BigDecimal revenue =
+                            revenueMap.getOrDefault(date, BigDecimal.ZERO);
+
+                    result.add(new RevenuePointDto(date, revenue));
+                }
+
+                return result;
             }
             case MONTHLY -> {
-                // last 12 months
+
+                List<RevenuePointDto> result = new ArrayList<>();
+                ZonedDateTime now = ZonedDateTime.now(zone);
+
                 for (int i = 11; i >= 0; i--) {
+
                     ZonedDateTime start = now.minusMonths(i)
                             .withDayOfMonth(1)
                             .toLocalDate()
@@ -117,19 +142,41 @@ public class DashboardService {
 
                     ZonedDateTime end = start.plusMonths(1);
 
-                    Double revenue = orderRepository.sumProfitBetween(
+                    BigDecimal revenue = orderRepository.sumRevenueBetween(
                             start.toOffsetDateTime(),
                             end.toOffsetDateTime()
                     );
 
                     result.add(new RevenuePointDto(
-                            start.getMonth().name().substring(0,3),
+                            start.toLocalDate(),
                             revenue
                     ));
                 }
+
+                return result;
             }
         }
 
-        return result;
+        return List.of();
+    }
+    public List<CategoryOrderCountDto> getCategoryOrderCounts(
+            RevenueFilterType type,
+            String period
+    ) {
+
+        OffsetDateTime start;
+        OffsetDateTime end;
+
+        if (type == RevenueFilterType.DAILY) {
+            LocalDate date = LocalDate.parse(period);
+            start = date.atStartOfDay().atOffset(ZoneOffset.UTC);
+            end = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+        } else {
+            YearMonth ym = YearMonth.parse(period);
+            start = ym.atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+            end = ym.plusMonths(1).atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+        }
+
+        return orderRepository.countOrdersByCategoryBetween(start, end);
     }
 }

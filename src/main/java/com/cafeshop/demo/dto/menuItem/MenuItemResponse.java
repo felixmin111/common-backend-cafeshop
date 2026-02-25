@@ -32,4 +32,6 @@ public class MenuItemResponse {
     private Set<IngredientResponse> ingredients;
     private List<MenuItemImageDto> images;
 
+    private Double averageRating;
+    private Long reviewCount;
 }

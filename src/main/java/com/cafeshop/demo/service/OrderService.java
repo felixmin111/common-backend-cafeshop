@@ -78,9 +78,34 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public OrderResponse getById(Long id) {
+
+        // 1) fetch order with details
         Order entity = orderRepo.findOrderDetailsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + id));
-        return mapper.toResponse(entity);
+
+        // 2) map to DTO first
+        OrderResponse dto = mapper.toResponse(entity);
+
+        // 3) map orderId -> invoiceId (single order)
+        Long invoiceId = invoiceOrderRepo.findInvoiceIdsByOrderIds(List.of(id)).stream()
+                .map(r -> (Long) r[1])     // r[0]=orderId, r[1]=invoiceId
+                .findFirst()
+                .orElse(null);
+
+        // 4) fetch invoice payment status (single invoice)
+        String payStatus = "__";
+        if (invoiceId != null) {
+            payStatus = invoiceRepo.findPaymentStatusByInvoiceIds(List.of(invoiceId)).stream()
+                    .map(r -> (String) r[1]) // r[0]=invoiceId, r[1]=paymentStatus
+                    .findFirst()
+                    .orElse("__");
+        }
+
+        // 5) set extra fields
+        dto.setInvoiceId(invoiceId);
+        dto.setInvoicePaymentStatus(payStatus);
+
+        return dto;
     }
 
     @Transactional(readOnly = true)

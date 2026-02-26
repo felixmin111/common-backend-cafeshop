@@ -1,5 +1,6 @@
 package com.cafeshop.demo.controller;
 
+import com.cafeshop.demo.service.webSocket.PaymentEventPublisher;
 import com.cafeshop.demo.service.webhook.OmiseSignatureVerifier;
 import com.cafeshop.demo.service.webhook.OmiseWebhookService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class OmiseWebhookController {
-
+    private final PaymentEventPublisher eventPublisher;
     private final OmiseWebhookService omiseWebhookService;
     private final OmiseSignatureVerifier verifier;
 
@@ -22,6 +23,7 @@ public class OmiseWebhookController {
     ) {
         verifier.verify(rawBody, signature, timestamp);
         omiseWebhookService.handle(rawBody);
+
         return ResponseEntity.ok().build();
     }
 }

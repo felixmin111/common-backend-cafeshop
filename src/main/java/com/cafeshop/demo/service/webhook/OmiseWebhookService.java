@@ -1,9 +1,12 @@
 package com.cafeshop.demo.service.webhook;
 
+import com.cafeshop.demo.dto.payment.PaymentUpdateEvent;
 import com.cafeshop.demo.dto.webhook.OmiseWebhookEvent;
 import com.cafeshop.demo.mode.enums.PaymentStatus;
 import com.cafeshop.demo.service.payment.PaymentService;
+import com.cafeshop.demo.service.webSocket.PaymentEventPublisher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OmiseWebhookService {
     private final OmiseWebhookParser parser;
     private final PaymentService paymentService;
+    private final PaymentEventPublisher paymentUpdateEvent;
 
     @Transactional
     public void handle(String payload) {
@@ -22,11 +26,15 @@ public class OmiseWebhookService {
 
         PaymentStatus newStatus = mapStatus(event.status());
 
-        paymentService.updateStatusByGatewayPaymentId(
+        PaymentUpdateEvent evt =paymentService.updateStatusByGatewayPaymentId(
                 event.chargeId(),
                 newStatus,
                 payload
         );
+        if (evt != null && evt.orderIds() != null && !evt.orderIds().isEmpty()) {
+            paymentUpdateEvent.paymentUpdated(evt);
+        }
+
     }
 
     private PaymentStatus mapStatus(String omiseStatus) {

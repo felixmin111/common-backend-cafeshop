@@ -2,10 +2,12 @@ package com.cafeshop.demo.service.payment;
 
 import com.cafeshop.demo.dto.payment.PaymentCreateRequest;
 import com.cafeshop.demo.dto.payment.PaymentResponse;
+import com.cafeshop.demo.dto.payment.PaymentUpdateEvent;
 import com.cafeshop.demo.mapper.PaymentMapper;
 import com.cafeshop.demo.mode.Invoice;
 import com.cafeshop.demo.mode.Payment;
 import com.cafeshop.demo.mode.enums.PaymentStatus;
+import com.cafeshop.demo.repository.InvoiceOrderRepository;
 import com.cafeshop.demo.repository.InvoiceRepository;
 import com.cafeshop.demo.repository.PaymentRepository;
 import com.cafeshop.demo.service.payment.creator.InvoiceCreator;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,7 @@ public class PaymentService {
     private final PaymentProcessorResolver processorResolver;
     private final PaymentRepository paymentRepo;
     private final PaymentMapper paymentMapper;
+    private final InvoiceOrderRepository invoiceOrderRepository;
 
     public PaymentResponse create(PaymentCreateRequest req) {
 
@@ -54,7 +58,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public void updateStatusByGatewayPaymentId(String chargeId,
+    public PaymentUpdateEvent updateStatusByGatewayPaymentId(String chargeId,
                                                PaymentStatus newStatus,
                                                String rawCallback) {
 
@@ -65,7 +69,6 @@ public class PaymentService {
         if (payment.getStatus() == PaymentStatus.PAID && newStatus != PaymentStatus.REFUNDED) {
             log.info("Skip status update: payment already PAID | paymentId={} chargeId={} newStatus={}",
                     payment.getId(), chargeId, newStatus);
-            return;
         }
 
         payment.setStatus(newStatus);
@@ -94,6 +97,15 @@ public class PaymentService {
                 }
             }
         }
+        List<Long> orderIds = invoiceOrderRepository.findOrderIdsByInvoiceId(invoice.getId());
+
+        return new PaymentUpdateEvent(
+                invoice.getId(),
+                payment.getId(),
+                payment.getStatus().name(),
+                payment.getMethod() != null ? payment.getMethod().name() : "--",
+                orderIds
+        );
     }
 
     @Transactional

@@ -28,18 +28,20 @@ public class OrderCreator {
 
             MenuItemSize mis = menuItemSizeRepo.findById(itemReq.getMenuItemSizeId())
                     .orElseThrow(() -> new IllegalArgumentException("MenuItemSize not found"));
+            System.out.println("MenuItemSize-->" + mis.getSellPrice());
 
-            BigDecimal baseUnitPrice = BigDecimal.valueOf(mis.getSellPrice()); // check sellPrice type!
-            BigDecimal ingUnitTotal = calcIngredientUnitTotal(itemReq);        // ✅ new
-            BigDecimal unitTotal = baseUnitPrice.add(ingUnitTotal);            // ✅ base + ingredients
-            BigDecimal lineTotal = unitTotal.multiply(BigDecimal.valueOf(itemReq.getQty())); // ✅ * qty
+            BigDecimal baseUnitPrice = BigDecimal.valueOf(mis.getSellPrice());
+            BigDecimal ingUnitTotal = calcIngredientUnitTotal(itemReq);
+            BigDecimal unitTotal = baseUnitPrice.add(ingUnitTotal);
+            BigDecimal lineTotal = unitTotal.multiply(BigDecimal.valueOf(itemReq.getQty()));
 
             Order order = Order.builder()
                     .orderPlace(invoice.getOrderPlace())
+                    .customerName(invoice.getCustomerName())
                     .menuItemSize(mis)
                     .qty(itemReq.getQty())
-                    .unitPrice(unitTotal)         // ✅ include ingredients in unit price (optional)
-                    .totalPrice(lineTotal)        // ✅ correct total
+                    .unitPrice(unitTotal)
+                    .totalPrice(lineTotal)
                     .status(OrderStatus.PENDING)
                     .note(itemReq.getNote())
                     .build();

@@ -69,4 +69,7 @@ public class MenuItem extends AuditableEntity{
     @Builder.Default
     private java.util.List<MenuItemImage> images = new java.util.ArrayList<>();
 
+    @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL)
+    private List<Review> reviews;
+
 }

@@ -4,15 +4,13 @@ import com.cafeshop.demo.dto.ingredient.IngredientCreateRequest;
 import com.cafeshop.demo.dto.menuItem.MenuItemCreateRequest;
 import com.cafeshop.demo.dto.menuItem.MenuItemResponse;
 import com.cafeshop.demo.dto.menuitemCreateSize.MenuItemSizeCreateRequest;
+import com.cafeshop.demo.dto.review.RatingSummary;
 import com.cafeshop.demo.mapper.IngredientMapper;
 import com.cafeshop.demo.mapper.MenuItemCreateRequestMapper;
 import com.cafeshop.demo.mapper.MenuItemResponseMapper;
 import com.cafeshop.demo.mode.*;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
-import com.cafeshop.demo.repository.CategoryRepository;
-import com.cafeshop.demo.repository.MenuItemRepository;
-import com.cafeshop.demo.repository.SizeRepository;
-import com.cafeshop.demo.repository.TagRepository;
+import com.cafeshop.demo.repository.*;
 import com.cafeshop.demo.service.MenuItemService;
 import com.cafeshop.demo.service.menuItem.IngredientSynchronizer;
 import com.cafeshop.demo.service.menuItem.MenuItemSizeSynchronizer;
@@ -23,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +31,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     private final MenuItemRepository repository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepo;
+    private final ReviewRepository reviewRepository;
 
     private final MenuItemSizeSynchronizer menuItemSizeSynchronizer;
     private final IngredientSynchronizer ingredientSynchronizer;
@@ -62,28 +62,107 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemResponseMapper.toDto(repository.save(menuItem));
     }
 
-    @Override
-    public List<MenuItemResponse> findAll() {
-        return repository.findAll()
-                .stream()
-                .map(menuItemResponseMapper::toDto)
-                .toList();
-    }
+//    @Override
+//    public List<MenuItemResponse> findAll() {
+//        return repository.findAll()
+//                .stream()
+//                .map(menuItemResponseMapper::toDto)
+//                .toList();
+//    }
+@Override
+public List<MenuItemResponse> findAll() {
+
+    List<MenuItem> items = repository.findAll();
+
+    // 1️⃣ Get all rating summaries in ONE query
+    List<RatingSummary> summaries = reviewRepository.getRatingSummariesGrouped();
+
+    // 2️⃣ Convert to Map<menuItemId, RatingSummary>
+    Map<Long, RatingSummary> ratingMap =
+            summaries.stream()
+                    .collect(Collectors.toMap(
+                            RatingSummary::menuItemId,
+                            s -> s
+                    ));
+
+    // 3️⃣ Map entity → DTO and inject rating
+    return items.stream().map(item -> {
+
+        MenuItemResponse dto = menuItemResponseMapper.toDto(item);
+
+        RatingSummary summary = ratingMap.get(item.getId());
+
+        if (summary != null) {
+            dto.setAverageRating(summary.averageRating());
+            dto.setReviewCount(summary.reviewCount());
+        } else {
+            dto.setAverageRating(0.0);
+            dto.setReviewCount(0L);
+        }
+
+        return dto;
+
+    }).toList();
+}
+
 
     @Override
     public MenuItemResponse findById(Long id) {
-        return repository.findById(id)
-                .map(menuItemResponseMapper::toDto)
+
+        MenuItem item = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("MenuItem not found"));
+
+        MenuItemResponse dto = menuItemResponseMapper.toDto(item);
+
+        RatingSummary summary = reviewRepository
+                .getRatingSummary(id)
+                .orElse(new RatingSummary(id, 0.0, 0L));
+
+        dto.setAverageRating(summary.averageRating());
+        dto.setReviewCount(summary.reviewCount());
+        return dto;
     }
 
-    @Override
-    public List<MenuItemResponse> findByStatus(MenuItemStatus status) {
-        return repository.findByStatus(status)
-                .stream()
-                .map(menuItemResponseMapper::toDto)
-                .toList();
-    }
+//    @Override
+//    public List<MenuItemResponse> findByStatus(MenuItemStatus status) {
+//        return repository.findByStatus(status)
+//                .stream()
+//                .map(menuItemResponseMapper::toDto)
+//                .toList();
+//    }
+@Override
+public List<MenuItemResponse> findByStatus(MenuItemStatus status) {
+
+    List<MenuItem> items = repository.findByStatus(status);
+
+    // 1️⃣ Still ONE grouped query
+    List<RatingSummary> summaries = reviewRepository.getRatingSummariesGrouped();
+
+    Map<Long, RatingSummary> ratingMap =
+            summaries.stream()
+                    .collect(Collectors.toMap(
+                            RatingSummary::menuItemId,
+                            s -> s
+                    ));
+
+    return items.stream().map(item -> {
+
+        MenuItemResponse dto = menuItemResponseMapper.toDto(item);
+
+        RatingSummary summary = ratingMap.get(item.getId());
+
+        if (summary != null) {
+            dto.setAverageRating(summary.averageRating());
+            dto.setReviewCount(summary.reviewCount());
+        } else {
+            dto.setAverageRating(0.0);
+            dto.setReviewCount(0L);
+        }
+
+        return dto;
+
+    }).toList();
+}
 
     @Override
     public void delete(Long id) {

@@ -39,12 +39,5 @@ public class Category extends AuditableEntity{
     @Builder.Default
     private List<MenuItem> menuItems = new ArrayList<>();
 
-    @CreatedDate
-    @Column(name="created_at", updatable=false, nullable=false)
-    private Instant createdAt;
-
-    @LastModifiedDate
-    @Column(name="updated_at", nullable=false)
-    private Instant updatedAt;
 }
 

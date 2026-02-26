@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**",
                                          "/api/admin/menu-items",
                                           "/api/payments/webhook/omise",
+                                          "/api/menu-items/*/reviews/**",
                                           "/api/payments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items/*").permitAll()
                         .anyRequest().authenticated()

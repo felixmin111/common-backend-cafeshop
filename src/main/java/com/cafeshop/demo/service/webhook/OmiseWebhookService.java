@@ -19,6 +19,7 @@ public class OmiseWebhookService {
 
     @Transactional
     public void handle(String payload) {
+
         OmiseWebhookEvent event = parser.parse(payload);
 
         // Only process charge events (optional safety)
@@ -31,6 +32,7 @@ public class OmiseWebhookService {
                 newStatus,
                 payload
         );
+        System.out.println("Arrive payment handle"+evt.orderIds().size());
         if (evt != null && evt.orderIds() != null && !evt.orderIds().isEmpty()) {
             paymentUpdateEvent.paymentUpdated(evt);
         }

@@ -15,7 +15,6 @@ public class PaymentEventPublisher {
 
     public void paymentUpdated(PaymentUpdateEvent evt) {
 
-        // Notify each order details page
         for (Long orderId : evt.orderIds()) {
             messagingTemplate.convertAndSend(
                     "/topic/orders/" + orderId + "/payment",
@@ -23,7 +22,6 @@ public class PaymentEventPublisher {
             );
         }
 
-        // Optional: notify orders list page to refresh
         messagingTemplate.convertAndSend("/topic/orders/payment", evt);
     }
 }

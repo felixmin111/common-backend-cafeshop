@@ -45,7 +45,8 @@ public class SecurityConfig {
                                           "/api/payments/webhook/omise",
                                           "/api/menu-items/*/reviews/**",
                                           "/api/payments",
-                                            "/ws/**").permitAll()
+                                          "/api/admin/categories",
+                                          "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items/*").permitAll()
                         .anyRequest().authenticated()
                 )

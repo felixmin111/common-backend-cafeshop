@@ -16,12 +16,15 @@ public class PaymentEventPublisher {
     public void paymentUpdated(PaymentUpdateEvent evt) {
 
         for (Long orderId : evt.orderIds()) {
-            System.out.println("Send event-->"+orderId);
             messagingTemplate.convertAndSend(
                     "/topic/orders/" + orderId + "/payment",
                     evt
             );
         }
+        messagingTemplate.convertAndSend(
+                "/topic/payments/" + evt.paymentId(),
+                evt
+        );
 
         messagingTemplate.convertAndSend("/topic/orders/payment", evt);
     }

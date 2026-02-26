@@ -1,6 +1,7 @@
 package com.cafeshop.demo.repository;
 
 import com.cafeshop.demo.dto.dashboard.CategoryOrderCountDto;
+import com.cafeshop.demo.mode.Invoice;
 import com.cafeshop.demo.mode.Order;
 import com.cafeshop.demo.mode.enums.OrderStatus;
 import org.springframework.data.jpa.repository.EntityGraph;

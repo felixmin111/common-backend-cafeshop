@@ -40,4 +40,6 @@ public class OrderResponse {
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private Long invoiceId;
+    private String invoicePaymentStatus;
 }

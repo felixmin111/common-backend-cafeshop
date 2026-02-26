@@ -32,4 +32,13 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
         order by i.createdAt desc
     """)
     List<Invoice> findAllWithDetails();
-}
+
+
+        @Query("""
+        select i.id, i.status
+        from Invoice i
+        where i.id in :ids
+    """)
+        List<Object[]> findPaymentStatusByInvoiceIds(@Param("ids") List<Long> ids);
+    }
+

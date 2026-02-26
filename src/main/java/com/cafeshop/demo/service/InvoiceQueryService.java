@@ -33,4 +33,6 @@ public class InvoiceQueryService {
                 .orElseThrow(() -> new EntityNotFoundException("Invoice not found: " + id));
         return mapper.toResponse(invoice);
     }
+
+
 }

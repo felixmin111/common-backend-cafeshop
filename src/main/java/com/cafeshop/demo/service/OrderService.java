@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +26,9 @@ public class OrderService {
     private final MenuItemSizeRepository menuItemSizeRepo;
     private final OrderPlaceRepository orderPlaceRepo;
     private final IngredientRepository ingredientRepo;
+    private final InvoiceRepository invoiceRepo;
     private final OrderMapper mapper;
+    private final InvoiceOrderRepository invoiceOrderRepo;
 
     public OrderResponse create(OrderRequest req) {
         System.out.println("Order Ingredients Request: " + req.getIngredients().size());
@@ -81,7 +85,40 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getAll() {
-        return orderRepo.findAllWithDetails().stream().map(mapper::toResponse).toList();
+        var orders = orderRepo.findAllWithDetails();
+
+        // 1) map to DTO first
+        var dtos = orders.stream().map(mapper::toResponse).toList();
+
+        // 2) get orderIds
+        var orderIds = orders.stream().map(Order::getId).toList();
+
+        // 3) map orderId -> invoiceId
+        Map<Long, Long> orderIdToInvoiceId = invoiceOrderRepo.findInvoiceIdsByOrderIds(orderIds).stream()
+                .collect(Collectors.toMap(
+                        r -> (Long) r[0],
+                        r -> (Long) r[1],
+                        (a, b) -> a
+                ));
+
+        // 4) fetch invoice payment statuses
+        var invoiceIds = orderIdToInvoiceId.values().stream().distinct().toList();
+
+        Map<Long, String> invoiceIdToPayStatus = invoiceRepo.findPaymentStatusByInvoiceIds(invoiceIds).stream()
+                .collect(Collectors.toMap(
+                        r -> (Long) r[0],
+                        r -> (String) r[1],
+                        (a, b) -> a
+                ));
+
+        for (var dto : dtos) {
+            Long invoiceId = orderIdToInvoiceId.get(dto.getId());
+            String payStatus = (invoiceId == null) ? "__" : invoiceIdToPayStatus.getOrDefault(invoiceId, "__");
+            dto.setInvoicePaymentStatus(payStatus);
+            dto.setInvoiceId(invoiceId);
+        }
+
+        return dtos;
     }
 
     public OrderResponse update(Long id, OrderRequest req) {

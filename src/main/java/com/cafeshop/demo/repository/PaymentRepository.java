@@ -21,4 +21,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             "invoice.invoiceOrders.order.orderIngredients.ingredient"
     })
     Optional<Payment> findWithDetailsById( Long id);
+
+    List<Payment> findByInvoiceId(Long invoiceId);
 }

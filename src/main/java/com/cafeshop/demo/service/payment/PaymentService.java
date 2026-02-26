@@ -6,6 +6,7 @@ import com.cafeshop.demo.mapper.PaymentMapper;
 import com.cafeshop.demo.mode.Invoice;
 import com.cafeshop.demo.mode.Payment;
 import com.cafeshop.demo.mode.enums.PaymentStatus;
+import com.cafeshop.demo.repository.InvoiceRepository;
 import com.cafeshop.demo.repository.PaymentRepository;
 import com.cafeshop.demo.service.payment.creator.InvoiceCreator;
 import com.cafeshop.demo.service.payment.creator.OrderCreator;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Service
@@ -23,8 +25,8 @@ import java.time.OffsetDateTime;
 @Transactional
 @Slf4j
 public class PaymentService {
-
     private final InvoiceCreator invoiceCreator;
+    private final InvoiceRepository invoiceRepository;
     private final OrderCreator orderCreator;
     private final PaymentFactory paymentFactory;
     private final PaymentProcessorResolver processorResolver;
@@ -93,5 +95,34 @@ public class PaymentService {
             }
         }
     }
+
+    @Transactional
+    public Payment updatePaymentStatus(Long paymentId, PaymentStatus newStatus) {
+
+        Payment payment = paymentRepo.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
+
+        payment.setStatus(newStatus);
+        paymentRepo.save(payment);
+
+        Invoice invoice = payment.getInvoice();
+        Long invoiceId = invoice.getId();
+
+
+        BigDecimal paid = paymentRepo.findByInvoiceId(invoiceId).stream()
+                .filter(p -> "SUCCESS".equalsIgnoreCase(p.getStatus().name()))   // adjust to your real success status
+                .map(Payment::getAmount)                                  // adjust field name
+                .filter(a -> a != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal total = invoice.getGrandTotal() == null ? BigDecimal.ZERO : invoice.getGrandTotal();
+
+
+        invoice.setStatus(newStatus.name());
+        invoiceRepository.save(invoice);
+
+        return payment;
+    }
+
 }
 

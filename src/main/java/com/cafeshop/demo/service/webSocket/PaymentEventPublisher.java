@@ -30,7 +30,7 @@ public class PaymentEventPublisher {
         }
 
         String paymentTopic = "/topic/payments/" + evt.paymentId();
-        System.out.println("Sending to: " + paymentTopic);
+        System.out.println("Sending to: " + paymentTopic+"Status"+evt.paymentStatus());
 
         messagingTemplate.convertAndSend(paymentTopic, evt);
 

@@ -15,17 +15,29 @@ public class PaymentEventPublisher {
 
     public void paymentUpdated(PaymentUpdateEvent evt) {
 
+        System.out.println("========== PAYMENT EVENT ==========");
+        System.out.println("Payment ID: " + evt.paymentId());
+        System.out.println("Order IDs: " + evt.orderIds());
+        System.out.println("===================================");
+
         for (Long orderId : evt.orderIds()) {
-            messagingTemplate.convertAndSend(
-                    "/topic/orders/" + orderId + "/payment",
-                    evt
-            );
+
+            String destination = "/topic/orders/" + orderId + "/payment";
+
+            System.out.println("Sending to: " + destination);
+
+            messagingTemplate.convertAndSend(destination, evt);
         }
-        messagingTemplate.convertAndSend(
-                "/topic/payments/" + evt.paymentId(),
-                evt
-        );
+
+        String paymentTopic = "/topic/payments/" + evt.paymentId();
+        System.out.println("Sending to: " + paymentTopic);
+
+        messagingTemplate.convertAndSend(paymentTopic, evt);
+
+        System.out.println("Sending to: /topic/orders/payment");
 
         messagingTemplate.convertAndSend("/topic/orders/payment", evt);
+
+        System.out.println("===== MESSAGE SENT SUCCESSFULLY =====");
     }
 }

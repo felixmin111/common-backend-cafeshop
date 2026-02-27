@@ -33,7 +33,7 @@ public class OmiseWebhookService {
                 payload
         );
         System.out.println("Arrive payment handle-->"+evt.orderIds().size());
-        if (evt != null && evt.orderIds() != null && !evt.orderIds().isEmpty()) {
+        if (evt != null && evt.orderIds() != null && evt.paymentStatus().equals("PAID") && !evt.orderIds().isEmpty()) {
             paymentUpdateEvent.paymentUpdated(evt);
         }
 

@@ -47,6 +47,7 @@ public class SecurityConfig {
                                           "/api/payments",
                                           "/api/admin/categories",
                                           "/api/admin/orders",
+                                          "/api/qz/**",
                                           "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items/*").permitAll()
                         .anyRequest().authenticated()

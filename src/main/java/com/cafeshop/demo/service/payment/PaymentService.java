@@ -6,6 +6,7 @@ import com.cafeshop.demo.dto.payment.PaymentUpdateEvent;
 import com.cafeshop.demo.mapper.PaymentMapper;
 import com.cafeshop.demo.mode.Invoice;
 import com.cafeshop.demo.mode.Payment;
+import com.cafeshop.demo.mode.enums.PaymentMethod;
 import com.cafeshop.demo.mode.enums.PaymentStatus;
 import com.cafeshop.demo.repository.InvoiceOrderRepository;
 import com.cafeshop.demo.repository.InvoiceRepository;
@@ -50,7 +51,7 @@ public class PaymentService {
         processor.process(payment, req);
         Payment saved = paymentRepo.save(payment);
 
-        if (saved.getStatus() == PaymentStatus.PAID) {
+        if (saved.getMethod() == PaymentMethod.CASH) {
             publishPaymentEvent(saved);
         }
 

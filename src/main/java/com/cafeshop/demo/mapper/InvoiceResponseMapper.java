@@ -1,5 +1,6 @@
 package com.cafeshop.demo.mapper;
 
+import com.cafeshop.demo.dto.ingredient.IngredientResponse;
 import com.cafeshop.demo.dto.invoice.*;
 import com.cafeshop.demo.dto.payment.PaymentResponse;
 import com.cafeshop.demo.mode.*;
@@ -17,9 +18,18 @@ public interface InvoiceResponseMapper {
     InvoiceResponse toResponse(Invoice invoice);
 
     @Mapping(target = "orderId", source = "order.id")
+    @Mapping(target = "ingredientResponses", source = "order.orderIngredients")
     InvoiceOrderLineResponse toOrderLine(InvoiceOrder invoiceOrder);
 
     PaymentResponse toPayment(Payment payment);
+
+    // map each OrderIngredient to ingredient response dto
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "ingredientId", source = "ingredient.id")
+    @Mapping(target = "name", source = "ingredient.name")
+    @Mapping(target = "qty", source = "qty")
+    @Mapping(target = "note", source = "note")
+    IngredientResponse toIngredientResponse(OrderIngredient orderIngredient);
 
     default String buildOrderPlaceName(OrderPlace op) {
         if (op == null) return null;
@@ -34,4 +44,3 @@ public interface InvoiceResponseMapper {
         return no + " (" + type + ")";
     }
 }
-

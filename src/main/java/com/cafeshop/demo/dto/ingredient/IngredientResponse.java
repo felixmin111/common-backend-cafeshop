@@ -11,7 +11,9 @@ import java.math.BigDecimal;
 @Builder
 public class IngredientResponse {
     private Long id;
+    private Long ingredientId;
     private String name;
+    private int qty;
     private String amount;
     private BigDecimal price;
     private String note;

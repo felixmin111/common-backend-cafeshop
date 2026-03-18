@@ -4,9 +4,6 @@ import com.cafeshop.demo.dto.payment.PaymentUpdateEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-
 @RequiredArgsConstructor
 @Service
 public class PaymentEventPublisher {

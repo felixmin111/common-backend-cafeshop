@@ -14,6 +14,7 @@ import com.cafeshop.demo.service.payment.creator.InvoiceCreator;
 import com.cafeshop.demo.service.payment.creator.OrderCreator;
 import com.cafeshop.demo.service.payment.processor.PaymentProcessor;
 import com.cafeshop.demo.service.payment.processor.PaymentProcessorResolver;
+import com.cafeshop.demo.service.webSocket.PaymentEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class PaymentService {
     private final PaymentProcessorResolver processorResolver;
     private final PaymentRepository paymentRepo;
     private final PaymentMapper paymentMapper;
+    private final PaymentEventPublisher paymentEventPublisher;
     private final InvoiceOrderRepository invoiceOrderRepository;
 
     public PaymentResponse create(PaymentCreateRequest req) {
@@ -47,6 +49,11 @@ public class PaymentService {
 
         processor.process(payment, req);
         Payment saved = paymentRepo.save(payment);
+
+        if (saved.getStatus() == PaymentStatus.PAID) {
+            publishPaymentEvent(saved);
+        }
+
         return paymentMapper.toResponse(saved);
     }
 
@@ -135,6 +142,19 @@ public class PaymentService {
 
         return payment;
     }
+    private void publishPaymentEvent(Payment payment) {
+        Invoice invoice = payment.getInvoice();
+        List<Long> orderIds = invoiceOrderRepository.findOrderIdsByInvoiceId(invoice.getId());
 
+        PaymentUpdateEvent event = new PaymentUpdateEvent(
+                invoice.getId(),
+                payment.getId(),
+                payment.getStatus().name(),
+                payment.getMethod() != null ? payment.getMethod().name() : "--",
+                orderIds
+        );
+
+        paymentEventPublisher.paymentUpdated(event);
+    }
 }
 

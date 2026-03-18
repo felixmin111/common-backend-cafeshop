@@ -27,6 +27,7 @@ public interface InvoiceResponseMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "ingredientId", source = "ingredient.id")
     @Mapping(target = "name", source = "ingredient.name")
+    @Mapping(target = "price", source = "ingredient.price")
     @Mapping(target = "qty", source = "qty")
     @Mapping(target = "note", source = "note")
     IngredientResponse toIngredientResponse(OrderIngredient orderIngredient);

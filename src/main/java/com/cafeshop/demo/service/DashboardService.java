@@ -25,15 +25,39 @@ public class DashboardService {
     private final OrderRepository orderRepository;
     private final OrderPlaceRepository orderPlaceRepository;
 
-    public DashboardResponseDto getDashboard() {
+    public DashboardResponseDto getDashboard(String type, String period) {
 
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime todayStart;
+        OffsetDateTime todayEnd;
+        OffsetDateTime yesterdayStart;
+        OffsetDateTime yesterdayEnd;
 
-        OffsetDateTime todayStart = now.toLocalDate().atStartOfDay().atOffset(now.getOffset());
-        OffsetDateTime todayEnd = todayStart.plusDays(1);
+        if (type.equals("DAILY")) {
+            LocalDate date = LocalDate.parse(period);
 
-        OffsetDateTime yesterdayStart = todayStart.minusDays(1);
-        OffsetDateTime yesterdayEnd = todayStart;
+            todayStart = date.atStartOfDay().atOffset(ZoneOffset.UTC);
+            todayEnd = todayStart.plusDays(1);
+
+            yesterdayStart = todayStart.minusDays(1);
+            yesterdayEnd = todayStart;
+
+        } else { // MONTHLY
+            YearMonth month = YearMonth.parse(period);
+
+            LocalDate firstDay = month.atDay(1);
+            LocalDate nextMonth = month.plusMonths(1).atDay(1);
+
+            ZoneOffset offset = ZoneOffset.ofHours(7);
+
+            todayStart = firstDay.atStartOfDay().atOffset(offset);
+            todayEnd = nextMonth.atStartOfDay().atOffset(offset);
+
+// previous month
+            LocalDate prevMonth = month.minusMonths(1).atDay(1);
+
+            yesterdayStart = prevMonth.atStartOfDay().atOffset(offset);
+            yesterdayEnd = firstDay.atStartOfDay().atOffset(offset);
+        }
 
         // Orders
         Long todayOrders = orderRepository.countOrdersBetween(todayStart, todayEnd);
@@ -41,25 +65,25 @@ public class DashboardService {
 
         Double orderGrowth = calculateGrowth(todayOrders, yesterdayOrders);
 
-        // PROFIT (Baht difference)
+        // Profit
         BigDecimal todayProfit = orderRepository.sumRevenueBetween(todayStart, todayEnd);
         BigDecimal yesterdayProfit = orderRepository.sumRevenueBetween(yesterdayStart, yesterdayEnd);
 
         Double profitGrowth = calculateGrowth(todayProfit, yesterdayProfit);
 
-        // Tables
+        // Tables (unchanged)
         Long activeTables = orderPlaceRepository.countByStatus(OrderPlaceStatus.ACTIVE);
         Long totalTables = orderPlaceRepository.countAllActiveTables();
 
-        // Popular Item
+        // Popular Item (based on selected period!)
         List<Object[]> popularItems = orderRepository.findPopularItems(todayStart, todayEnd);
 
         String popularName = null;
         Long popularCount = 0L;
 
         if (!popularItems.isEmpty()) {
-            popularName = (String) popularItems.getFirst()[0];
-            popularCount = (Long) popularItems.getFirst()[1];
+            popularName = (String) popularItems.get(0)[0];
+            popularCount = (Long) popularItems.get(0)[1];
         }
 
         return DashboardResponseDto.builder()
@@ -74,7 +98,6 @@ public class DashboardService {
                 .popularItemCount(popularCount)
                 .build();
     }
-
     private Double calculateGrowth(Number today, Number yesterday) {
         double y = yesterday.doubleValue();
         if (y == 0) return 100.0;

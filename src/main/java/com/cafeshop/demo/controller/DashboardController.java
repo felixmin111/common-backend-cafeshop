@@ -22,8 +22,9 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping
-    public ResponseEntity<DashboardResponseDto> getDashboard() {
-        return ResponseEntity.ok(dashboardService.getDashboard());
+    public ResponseEntity<DashboardResponseDto> getDashboard( @RequestParam String type,
+                                                              @RequestParam String period) {
+        return ResponseEntity.ok(dashboardService.getDashboard(type,period));
     }
 
     @GetMapping("/revenue")

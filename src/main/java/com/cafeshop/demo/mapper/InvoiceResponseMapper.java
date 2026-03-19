@@ -15,6 +15,8 @@ public interface InvoiceResponseMapper {
     @Mapping(target = "orderPlaceName",
             expression = "java(buildOrderPlaceName(invoice.getOrderPlace()))")
     @Mapping(target = "orders", source = "invoiceOrders")
+    @Mapping(target = "vatRate", source = "vatRate")
+    @Mapping(target = "vatName", source = "vatName")
     InvoiceResponse toResponse(Invoice invoice);
 
     @Mapping(target = "orderId", source = "order.id")

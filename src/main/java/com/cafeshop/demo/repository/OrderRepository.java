@@ -159,4 +159,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             OffsetDateTime end
     );
 
+    List<Order> findByOrderPlaceId(Long id);
 }

@@ -40,6 +40,12 @@ public class Invoice {
     @Column(name = "tax", precision = 19, scale = 2)
     private BigDecimal tax;
 
+    @Column(name = "vat_name")
+    private String vatName;
+
+    @Column(name = "vat_rate", precision = 5, scale = 2)
+    private BigDecimal vatRate;
+
     @Column(name = "applied_at")
     private OffsetDateTime appliedAt;
 

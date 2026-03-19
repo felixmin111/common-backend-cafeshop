@@ -12,6 +12,8 @@ public record InvoiceResponse(
         String customerName,
         BigDecimal subTotal,
         BigDecimal tax,
+        BigDecimal vatRate,
+        String vatName,
         BigDecimal deliveryFee,
         BigDecimal grandTotal,
         String status,

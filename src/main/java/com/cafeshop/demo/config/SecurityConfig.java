@@ -45,13 +45,11 @@ public class SecurityConfig {
                                 "/api/qz/**",
                                 "/ws/**"
                         ).permitAll()
-
                         .requestMatchers(HttpMethod.POST, "/api/payments").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/categories").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/admin/orders").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/admin/orders/**").permitAll()
 
                         .anyRequest().authenticated()
                 )

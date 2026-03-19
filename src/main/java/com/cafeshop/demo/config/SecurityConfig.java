@@ -40,16 +40,20 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**",
-                                         "/api/admin/menu-items",
-                                          "/api/payments/webhook/omise",
-                                          "/api/menu-items/*/reviews/**",
-                                          "/api/payments",
-                                          "/api/admin/categories",
-                                          "/api/admin/orders",
-                                          "/api/qz/**",
-                                          "/ws/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/payments/webhook/omise",
+                                "/api/menu-items/*/reviews/**",
+                                "/api/admin/categories",
+                                "/api/admin/orders",
+                                "/api/qz/**",
+                                "/ws/**"
+                        ).permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/payments").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/admin/menu-items").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items/*").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider)

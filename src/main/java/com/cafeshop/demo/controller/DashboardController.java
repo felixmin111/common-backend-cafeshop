@@ -3,6 +3,7 @@ package com.cafeshop.demo.controller;
 import com.cafeshop.demo.dto.dashboard.CategoryOrderCountDto;
 import com.cafeshop.demo.dto.dashboard.DashboardResponseDto;
 import com.cafeshop.demo.dto.dashboard.RevenuePointDto;
+import com.cafeshop.demo.dto.dashboard.TopItemDto;
 import com.cafeshop.demo.mode.enums.RevenueFilterType;
 import com.cafeshop.demo.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,28 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.getDashboard(type,period));
     }
 
+    @GetMapping("/top-items")
+    public List<TopItemDto> getTopItems(
+            @RequestParam RevenueFilterType type,
+            @RequestParam String period
+    ) {
+        return dashboardService.getTopItems(type, period);
+    }
+
     @GetMapping("/revenue")
     public ResponseEntity<List<RevenuePointDto>> getRevenueChart(
             @RequestParam RevenueFilterType type,
             @RequestParam(required = false) String period
     ){
         return ResponseEntity.ok(dashboardService.getRevenueChart(type, period));
+    }
+
+    @GetMapping("/profit")
+    public ResponseEntity<List<RevenuePointDto>> getProfitChart(
+            @RequestParam RevenueFilterType type,
+            @RequestParam(required = false) String period
+    ){
+        return ResponseEntity.ok(dashboardService.getProfitChart(type, period));
     }
 
     @GetMapping("/category-orders")

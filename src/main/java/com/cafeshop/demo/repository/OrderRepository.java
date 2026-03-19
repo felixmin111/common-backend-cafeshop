@@ -75,10 +75,37 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     GROUP BY DATE(o.created_at)
     ORDER BY DATE(o.created_at)
 """, nativeQuery = true)
-    List<Object[]> sumProfitBetween(
+    List<Object[]> sumProfitBetweenChart(
             @Param("start") OffsetDateTime start,
             @Param("end") OffsetDateTime end
     );
+
+    @Query(value = """
+    SELECT
+        DATE(o.created_at) AS date,
+        COALESCE(SUM(
+            o.total_price * o.qty
+        ), 0)::numeric AS revenue
+    FROM orders o
+    WHERE o.created_at BETWEEN :start AND :end
+      AND o.status = 'COMPLETED'
+    GROUP BY DATE(o.created_at)
+    ORDER BY DATE(o.created_at)
+""", nativeQuery = true)
+    List<Object[]> sumSalesBetween(
+            @Param("start") OffsetDateTime start,
+            @Param("end") OffsetDateTime end
+    );
+
+    @Query("""
+    SELECT COALESCE(SUM(
+        o.totalPrice * o.qty
+    ), 0)
+    FROM Order o
+    WHERE o.createdAt BETWEEN :start AND :end
+    AND o.status = com.cafeshop.demo.mode.enums.OrderStatus.COMPLETED
+""")
+    BigDecimal sumTotalSalesBetween(OffsetDateTime start, OffsetDateTime end);
 
 
     @Query("""
@@ -92,7 +119,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     WHERE o.createdAt BETWEEN :start AND :end
     AND o.status = com.cafeshop.demo.mode.enums.OrderStatus.COMPLETED
 """)
-    BigDecimal sumRevenueBetween(OffsetDateTime start, OffsetDateTime end);
+    BigDecimal sumProfitBetween(OffsetDateTime start, OffsetDateTime end);
 
     // Popular item
     @Query("""
@@ -118,4 +145,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("start") OffsetDateTime start,
             @Param("end") OffsetDateTime end
     );
+
+    @Query("""
+    SELECT mis.menuItem.name, SUM(o.qty)
+    FROM Order o
+    JOIN o.menuItemSize mis
+    WHERE o.createdAt BETWEEN :start AND :end
+    GROUP BY mis.menuItem.name
+    ORDER BY SUM(o.qty) DESC
+""")
+    List<Object[]> findTopSellingItems(
+            OffsetDateTime start,
+            OffsetDateTime end
+    );
+
 }

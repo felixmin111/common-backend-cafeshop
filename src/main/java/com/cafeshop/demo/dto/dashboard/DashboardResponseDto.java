@@ -21,4 +21,8 @@ public class DashboardResponseDto {
 
     private String popularItemName;
     private Long popularItemCount;
+
+    private BigDecimal totalSales;
+    private BigDecimal previousSales;
+    private Double salesGrowthPercent;
 }

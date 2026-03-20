@@ -210,4 +210,16 @@ public List<MenuItemResponse> findByStatus(MenuItemStatus status) {
         return menuItemResponseMapper.toDto(repository.save(existing));
     }
 
+    @Override
+    public MenuItemResponse updateStatus(Long id, MenuItemStatus status) {
+        MenuItem item = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Menu item not found"));
+
+        item.setStatus(status);
+
+        MenuItem saved = repository.save(item);
+
+        return menuItemResponseMapper.toDto(saved);
+    }
+
 }

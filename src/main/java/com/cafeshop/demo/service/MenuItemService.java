@@ -22,4 +22,6 @@ public interface MenuItemService {
     void delete(Long id);
 
     MenuItemResponse update(Long id, MenuItemCreateRequest request);
+
+    MenuItemResponse updateStatus(Long id, MenuItemStatus status);
 }

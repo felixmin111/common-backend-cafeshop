@@ -1,6 +1,7 @@
 package com.cafeshop.demo.controller;
 import com.cafeshop.demo.dto.menuItem.MenuItemCreateRequest;
 import com.cafeshop.demo.dto.menuItem.MenuItemResponse;
+import com.cafeshop.demo.dto.menuItem.MenuItemStatusUpdateRequest;
 import com.cafeshop.demo.mode.MenuItem;
 import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import com.cafeshop.demo.service.MenuItemService;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/admin/menu-items")
 @RequiredArgsConstructor
@@ -34,6 +37,14 @@ public class AdminMenuItemController {
     @GetMapping("/status/{status}")
     public List<MenuItemResponse> findByStatus(@PathVariable MenuItemStatus status) {
         return service.findByStatus(status);
+    }
+
+    @PutMapping("/{id}/status")
+    public MenuItemResponse updateStatus(
+            @PathVariable Long id,
+            @RequestBody MenuItemStatusUpdateRequest request
+    ) {
+        return service.updateStatus(id, request.getStatus());
     }
 
     @DeleteMapping("/{id}")

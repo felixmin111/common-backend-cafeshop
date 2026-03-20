@@ -30,6 +30,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+        String path = request.getServletPath();
+
+        // 🔥 SKIP AUTH FOR PUBLIC ENDPOINTS
+        if (path.startsWith("/api/admin/vats")
+                || path.startsWith("/api/admin/menu-items")
+                || path.startsWith("/api/customer")
+        ) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         try {
 
             String authHeader = request.getHeader("Authorization");

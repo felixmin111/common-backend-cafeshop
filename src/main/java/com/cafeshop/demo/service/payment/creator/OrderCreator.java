@@ -3,6 +3,7 @@ package com.cafeshop.demo.service.payment.creator;
 import com.cafeshop.demo.dto.order.OrderRequest;
 import com.cafeshop.demo.dto.orderIngredient.OrderIngredientRequest;
 import com.cafeshop.demo.mode.*;
+import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import com.cafeshop.demo.mode.enums.OrderStatus;
 import com.cafeshop.demo.mode.enums.TaxType;
 import com.cafeshop.demo.repository.*;
@@ -30,6 +31,12 @@ public class OrderCreator {
 
             MenuItemSize mis = menuItemSizeRepo.findById(itemReq.getMenuItemSizeId())
                     .orElseThrow(() -> new IllegalArgumentException("MenuItemSize not found"));
+
+            if (mis.getMenuItem().getStatus() == MenuItemStatus.OUT_OF_STOCK) {
+                throw new IllegalArgumentException(
+                        "Item is out of stock: " + mis.getMenuItem().getName()
+                );
+            }
             System.out.println("MenuItemSize-->" + mis.getSellPrice());
 
             BigDecimal baseUnitPrice = BigDecimal.valueOf(mis.getSellPrice());

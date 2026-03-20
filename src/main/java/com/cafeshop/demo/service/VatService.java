@@ -86,8 +86,9 @@ public class VatService {
         return dto;
     }
 
-    public Vat getDefaultVat() {
-        return vatRepository.findByIsDefaultTrueAndIsActiveTrue()
+    public VatResponseDto getDefaultVat() {
+        Vat vat = vatRepository.findByIsDefaultTrueAndIsActiveTrue()
                 .orElseThrow(() -> new RuntimeException("No default VAT found"));
+        return mapToDto(vat);
     }
 }

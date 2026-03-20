@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,5 +41,17 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
         where i.id in :ids
     """)
         List<Object[]> findPaymentStatusByInvoiceIds(@Param("ids") List<Long> ids);
+
+    @Query("""
+    SELECT COUNT(i)
+    FROM Invoice i
+    WHERE i.status = 'PAID'
+      AND i.createdAt >= :start
+      AND i.createdAt < :end
+""")
+    Long countCompletedInvoicesBetween(
+            OffsetDateTime start,
+            OffsetDateTime end
+    );
     }
 

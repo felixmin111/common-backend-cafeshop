@@ -6,10 +6,10 @@ import com.cafeshop.demo.dto.dashboard.RevenuePointDto;
 import com.cafeshop.demo.dto.dashboard.TopItemDto;
 import com.cafeshop.demo.mode.enums.OrderPlaceStatus;
 import com.cafeshop.demo.mode.enums.RevenueFilterType;
+import com.cafeshop.demo.repository.InvoiceRepository;
 import com.cafeshop.demo.repository.OrderPlaceRepository;
 import com.cafeshop.demo.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,6 +25,7 @@ public class DashboardService {
 
     private final OrderRepository orderRepository;
     private final OrderPlaceRepository orderPlaceRepository;
+    private final InvoiceRepository invoiceRepository;
 
     public DashboardResponseDto getDashboard(String type, String period) {
 
@@ -61,8 +62,10 @@ public class DashboardService {
         }
 
         // Orders
-        Long todayOrders = orderRepository.countOrdersBetween(todayStart, todayEnd);
-        Long yesterdayOrders = orderRepository.countOrdersBetween(yesterdayStart, yesterdayEnd);
+//        Long todayOrders = orderRepository.countOrdersBetween(todayStart, todayEnd);
+//        Long yesterdayOrders = orderRepository.countOrdersBetween(yesterdayStart, yesterdayEnd);
+        Long todayOrders = invoiceRepository.countCompletedInvoicesBetween(todayStart, todayEnd);
+        Long yesterdayOrders = invoiceRepository.countCompletedInvoicesBetween(yesterdayStart, yesterdayEnd);
 
         Double orderGrowth = calculateGrowth(todayOrders, yesterdayOrders);
 

@@ -2,6 +2,7 @@ package com.cafeshop.demo.controller;
 
 import com.cafeshop.demo.dto.vat.VatRequestDto;
 import com.cafeshop.demo.dto.vat.VatResponseDto;
+import com.cafeshop.demo.mode.Vat;
 import com.cafeshop.demo.service.VatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,11 @@ public class VatController {
     @GetMapping("/active")
     public VatResponseDto getActiveVat() {
         return service.getActiveVat();
+    }
+
+    @GetMapping("/default")
+    public VatResponseDto getDefaultVat() {
+        return service.getDefaultVat();
     }
 
     @PostMapping

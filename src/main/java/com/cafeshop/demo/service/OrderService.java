@@ -8,7 +8,7 @@ import com.cafeshop.demo.mapper.OrderMapper;
 import com.cafeshop.demo.mode.*;
 import com.cafeshop.demo.mode.enums.OrderStatus;
 import com.cafeshop.demo.repository.*;
-import jakarta.validation.constraints.Size;
+import com.cafeshop.demo.mode.enums.MenuItemStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +36,11 @@ public class OrderService {
 
         MenuItemSize size = menuItemSizeRepo.findById(req.getMenuItemSizeId())
                 .orElseThrow(() -> new IllegalArgumentException("MenuItemSize not found: " + req.getMenuItemSizeId()));
+        if (size.getMenuItem().getStatus() == MenuItemStatus.OUT_OF_STOCK) {
+            throw new IllegalArgumentException(
+                    "Item is out of stock: " + size.getMenuItem().getName()
+            );
+        }
 
         OrderPlace place = orderPlaceRepo.findById(req.getOrderPlaceId())
                 .orElseThrow(() -> new IllegalArgumentException("OrderPlace not found: " + req.getOrderPlaceId()));

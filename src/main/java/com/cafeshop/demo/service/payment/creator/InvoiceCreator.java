@@ -1,6 +1,7 @@
 package com.cafeshop.demo.service.payment.creator;
 
 import com.cafeshop.demo.dto.payment.PaymentCreateRequest;
+import com.cafeshop.demo.dto.vat.VatResponseDto;
 import com.cafeshop.demo.mode.Invoice;
 import com.cafeshop.demo.mode.Order;
 import com.cafeshop.demo.mode.OrderPlace;
@@ -32,7 +33,7 @@ public class InvoiceCreator {
         OrderPlace place = orderPlaceRepo.findById(req.getOrderPlaceId())
                 .orElseThrow(() -> new IllegalArgumentException("OrderPlace not found"));
 
-        Vat vat = vatService.getDefaultVat();
+        VatResponseDto vat = vatService.getDefaultVat();
 
         Invoice invoice = Invoice.builder()
                 .orderPlace(place)

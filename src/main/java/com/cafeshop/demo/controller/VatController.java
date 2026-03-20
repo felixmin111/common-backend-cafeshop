@@ -3,13 +3,10 @@ package com.cafeshop.demo.controller;
 import com.cafeshop.demo.dto.vat.VatRequestDto;
 import com.cafeshop.demo.dto.vat.VatResponseDto;
 import com.cafeshop.demo.service.VatService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/admin/vats")
 @RequiredArgsConstructor
@@ -18,7 +15,7 @@ public class VatController {
     private final VatService service;
 
     @GetMapping
-    public List<VatResponseDto> getAllVats() {
+    public List<VatResponseDto> getVats() {
         return service.getVats();
     }
 
@@ -27,14 +24,19 @@ public class VatController {
         return service.getVatById(id);
     }
 
+    @GetMapping("/active")
+    public VatResponseDto getActiveVat() {
+        return service.getActiveVat();
+    }
+
     @PostMapping
-    public VatResponseDto createVat(@RequestBody @Valid VatRequestDto dto) {
+    public VatResponseDto createVat(@RequestBody VatRequestDto dto) {
         return service.createVat(dto);
     }
 
     @PutMapping("{id}")
-    public VatResponseDto updateVat(@Valid @RequestBody VatRequestDto dto, @PathVariable Long id) {
-        return service.updateVat(id,dto);
+    public VatResponseDto updateVat(@PathVariable Long id, @RequestBody VatRequestDto dto) {
+        return service.updateVat(id, dto);
     }
 
     @DeleteMapping("{id}")

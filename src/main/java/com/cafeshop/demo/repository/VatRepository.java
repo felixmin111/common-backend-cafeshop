@@ -15,5 +15,8 @@ public interface VatRepository extends JpaRepository<Vat, Long> {
     void clearDefaults();
 
     boolean existsByIsDefaultTrue();
+
     Optional<Vat> findByIsDefaultTrueAndIsActiveTrue();
+
+    Optional<Vat> findFirstByIsActiveTrueOrderByIsDefaultDescIdAsc();
 }

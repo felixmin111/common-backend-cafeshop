@@ -62,6 +62,12 @@ public class VatService {
         return mapToDto(updated);
     }
 
+    public VatResponseDto getActiveVat() {
+        Vat vat = vatRepository.findFirstByIsActiveTrueOrderByIsDefaultDescIdAsc()
+                .orElseThrow(() -> new RuntimeException("No active VAT found"));
+        return mapToDto(vat);
+    }
+
     public void deleteVat(Long id) {
         vatRepository.deleteById(id);
     }

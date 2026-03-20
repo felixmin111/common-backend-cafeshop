@@ -160,4 +160,27 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     );
 
     List<Order> findByOrderPlaceId(Long id);
+    List<Order> findByOrderPlaceIdAndCustomerNameAndStatus(
+            Long orderPlaceId,
+            String customerName,
+            OrderStatus status
+    );
+
+    @Query("""
+    SELECT o
+    FROM Order o
+    JOIN InvoiceOrder io ON io.order.id = o.id
+    WHERE io.invoice.id = :invoiceId
+""")
+    List<Order> findByInvoiceId(@Param("invoiceId") Long invoiceId);
+
+@EntityGraph(attributePaths = {
+        "menuItemSize",
+        "menuItemSize.menuItem",
+        "menuItemSize.size",
+        "orderPlace",
+        "orderIngredients",
+        "orderIngredients.ingredient"
+})
+List<Order> findByCustomerName(String customerName);
 }

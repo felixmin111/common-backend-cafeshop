@@ -1,5 +1,6 @@
 package com.cafeshop.demo.mode;
 
+import com.cafeshop.demo.mode.enums.TaxType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,6 +46,10 @@ public class Invoice {
 
     @Column(name = "vat_rate", precision = 5, scale = 2)
     private BigDecimal vatRate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vat_type")
+    private TaxType vatType;
 
     @Column(name = "applied_at")
     private OffsetDateTime appliedAt;

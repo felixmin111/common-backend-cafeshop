@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/api/qz/**",
                                 "/api/admin/orders/**",
                                 "/api/admin/vats/**",
-                                "/ws/**"
+                                "/ws/**",
+                                "/api/customer/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items").permitAll()
@@ -53,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/admin/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/orders/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/vats/**").permitAll()
+                        .requestMatchers("/api/customer/**").permitAll()
 
                         .anyRequest().authenticated()
                 )

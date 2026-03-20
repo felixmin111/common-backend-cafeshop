@@ -17,6 +17,7 @@ public interface InvoiceResponseMapper {
     @Mapping(target = "orders", source = "invoiceOrders")
     @Mapping(target = "vatRate", source = "vatRate")
     @Mapping(target = "vatName", source = "vatName")
+    @Mapping(target = "vatType", source =  "vatType")
     InvoiceResponse toResponse(Invoice invoice);
 
     @Mapping(target = "orderId", source = "order.id")

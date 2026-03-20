@@ -74,8 +74,6 @@ public class Order {
     @OneToMany(mappedBy = "order")
     private List<InvoiceOrder> invoiceOrders = new ArrayList<>();
 
-
-
     @PrePersist
     public void prePersist() {
         if (status == null) status = OrderStatus.PENDING; // or CONFIRMED

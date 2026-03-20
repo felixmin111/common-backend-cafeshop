@@ -4,11 +4,13 @@ import com.cafeshop.demo.dto.order.OrderRequest;
 import com.cafeshop.demo.dto.orderIngredient.OrderIngredientRequest;
 import com.cafeshop.demo.mode.*;
 import com.cafeshop.demo.mode.enums.OrderStatus;
+import com.cafeshop.demo.mode.enums.TaxType;
 import com.cafeshop.demo.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Component
@@ -53,12 +55,28 @@ public class OrderCreator {
 
             subTotal = subTotal.add(order.getTotalPrice());
         }
+        System.out.println("VAT TYPE: " + invoice.getVatType());
+        TaxType vatType = invoice.getVatType();
+
 
         invoice.setSubTotal(subTotal);
+
+        BigDecimal taxAmount;
+        if (vatType == TaxType.PERCENTAGE) {
+            taxAmount = subTotal
+                    .multiply(invoice.getVatRate())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } else {
+            taxAmount = invoice.getVatRate();
+        }
+
+
+        invoice.setTax(taxAmount);
         invoice.setGrandTotal(subTotal
                 .add(nvl(invoice.getTax()))
                 .add(nvl(invoice.getDeliveryFee())));
     }
+
     private BigDecimal calcIngredientUnitTotal(OrderRequest req) {
         if (req.getIngredients() == null || req.getIngredients().isEmpty()) return BigDecimal.ZERO;
 

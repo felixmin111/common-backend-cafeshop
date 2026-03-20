@@ -1,6 +1,7 @@
 package com.cafeshop.demo.dto.invoice;
 
 import com.cafeshop.demo.dto.payment.PaymentResponse;
+import com.cafeshop.demo.mode.enums.TaxType;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -14,6 +15,7 @@ public record InvoiceResponse(
         BigDecimal tax,
         BigDecimal vatRate,
         String vatName,
+        TaxType vatType,
         BigDecimal deliveryFee,
         BigDecimal grandTotal,
         String status,

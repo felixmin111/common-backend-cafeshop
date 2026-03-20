@@ -1,5 +1,6 @@
 package com.cafeshop.demo.service;
 
+import com.cafeshop.demo.dto.invoice.CustomerOrderResponse;
 import com.cafeshop.demo.dto.order.OrderRequest;
 import com.cafeshop.demo.dto.order.OrderResponse;
 import com.cafeshop.demo.dto.orderIngredient.OrderIngredientRequest;
@@ -176,4 +177,38 @@ public class OrderService {
     public void delete(Long id) {
         orderRepo.deleteById(id);
     }
+
+    public List<OrderResponse> getByCustomerName(String customerName) {
+        return orderRepo.findByCustomerName(customerName).stream().map(mapper::toResponse).toList();
+    }
+
+//    public List<OrderResponse> getByInvoiceId(Long invoiceId) {
+//        return orderRepo.findByInvoiceId(invoiceId)
+//                .stream()
+//                .map(mapper::toResponse)
+//                .toList();
+//    }
+    public List<CustomerOrderResponse> getByInvoiceId(Long invoiceId) {
+        return invoiceOrderRepo.findByInvoice_Id(invoiceId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public CustomerOrderResponse toResponse(InvoiceOrder io) {
+        return CustomerOrderResponse.builder()
+                .orderId(io.getOrder().getId())
+                .invoiceId(io.getInvoice().getId())
+                .menuItemName(io.getMenuItemName())
+                .sizeName(io.getSizeName())
+                .qty(io.getQty())
+                .unitPrice(io.getUnitPrice())
+                .lineTotal(io.getLineTotal())
+                .status(io.getOrder().getStatus().name())
+                .tableNo(io.getOrder().getOrderPlace().getNo())
+                .orderType(io.getOrder().getOrderPlace().getType())
+                .createdAt(io.getCreatedAt())
+                .build();
+    }
+
 }

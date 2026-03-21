@@ -47,7 +47,8 @@ public class SecurityConfig {
                                 "/api/admin/vats/**",
                                 "/ws/**",
                                 "/api/customer/**",
-                                "/api/admin/vats"
+                                "/api/admin/vats",
+                                "/api/admin/order-places/tableNumber/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/menu-items").permitAll()

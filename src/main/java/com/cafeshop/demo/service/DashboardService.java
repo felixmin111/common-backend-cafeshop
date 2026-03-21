@@ -35,6 +35,7 @@ public class DashboardService {
         OffsetDateTime yesterdayEnd;
 
         if (type.equals("DAILY")) {
+
             LocalDate date = LocalDate.parse(period);
 
             todayStart = date.atStartOfDay().atOffset(ZoneOffset.UTC);
@@ -43,7 +44,29 @@ public class DashboardService {
             yesterdayStart = todayStart.minusDays(1);
             yesterdayEnd = todayStart;
 
-        } else { // MONTHLY
+        }
+        else if (type.equals("WEEKLY")) {
+
+            LocalDate date = LocalDate.parse(period);
+
+            // Start of week (Monday)
+            LocalDate weekStart = date.with(DayOfWeek.MONDAY);
+            LocalDate nextWeek = weekStart.plusWeeks(1);
+
+            ZoneOffset offset = ZoneOffset.ofHours(7);
+
+            todayStart = weekStart.atStartOfDay().atOffset(offset);
+            todayEnd = nextWeek.atStartOfDay().atOffset(offset);
+
+            // Previous week
+            LocalDate prevWeek = weekStart.minusWeeks(1);
+
+            yesterdayStart = prevWeek.atStartOfDay().atOffset(offset);
+            yesterdayEnd = weekStart.atStartOfDay().atOffset(offset);
+
+        }
+        else { // MONTHLY
+
             YearMonth month = YearMonth.parse(period);
 
             LocalDate firstDay = month.atDay(1);
@@ -54,7 +77,6 @@ public class DashboardService {
             todayStart = firstDay.atStartOfDay().atOffset(offset);
             todayEnd = nextMonth.atStartOfDay().atOffset(offset);
 
-// previous month
             LocalDate prevMonth = month.minusMonths(1).atDay(1);
 
             yesterdayStart = prevMonth.atStartOfDay().atOffset(offset);
@@ -164,6 +186,39 @@ public class DashboardService {
 
                 return result;
             }
+            case WEEKLY -> {
+
+                List<RevenuePointDto> result = new ArrayList<>();
+//                ZoneId zone = ZoneId.of("Asia/Bangkok");
+
+                // ✅ Use selected period instead of now()
+                LocalDate selected =
+                        period != null
+                                ? LocalDate.parse(period)
+                                : LocalDate.now(zone);
+
+                // ✅ Align to Monday
+                LocalDate selectedWeekStart = selected.with(DayOfWeek.MONDAY);
+
+                // Go back 6 weeks from selected week
+                for (int i = 6; i >= 0; i--) {
+
+                    LocalDate weekStart = selectedWeekStart.minusWeeks(i);
+                    LocalDate weekEnd = weekStart.plusWeeks(1);
+
+                    BigDecimal revenue = orderRepository.sumTotalSalesBetween(
+                            weekStart.atStartOfDay(zone).toOffsetDateTime(),
+                            weekEnd.atStartOfDay(zone).toOffsetDateTime()
+                    );
+
+                    result.add(new RevenuePointDto(
+                            weekStart,
+                            revenue
+                    ));
+                }
+
+                return result;
+            }
             case MONTHLY -> {
 
                 List<RevenuePointDto> result = new ArrayList<>();
@@ -243,6 +298,36 @@ public class DashboardService {
 
                 return result;
             }
+            case WEEKLY -> {
+
+                List<RevenuePointDto> result = new ArrayList<>();
+//                ZoneId zone = ZoneId.of("Asia/Bangkok");
+
+                LocalDate selected =
+                        period != null
+                                ? LocalDate.parse(period)
+                                : LocalDate.now(zone);
+
+                LocalDate selectedWeekStart = selected.with(DayOfWeek.MONDAY);
+
+                for (int i = 6; i >= 0; i--) {
+
+                    LocalDate weekStart = selectedWeekStart.minusWeeks(i);
+                    LocalDate weekEnd = weekStart.plusWeeks(1);
+
+                    BigDecimal profit = orderRepository.sumProfitBetween(
+                            weekStart.atStartOfDay(zone).toOffsetDateTime(),
+                            weekEnd.atStartOfDay(zone).toOffsetDateTime()
+                    );
+
+                    result.add(new RevenuePointDto(
+                            weekStart,
+                            profit
+                    ));
+                }
+
+                return result;
+            }
             case MONTHLY -> {
 
                 List<RevenuePointDto> result = new ArrayList<>();
@@ -285,10 +370,25 @@ public class DashboardService {
         OffsetDateTime end;
 
         if (type == RevenueFilterType.DAILY) {
+
             LocalDate date = LocalDate.parse(period);
             start = date.atStartOfDay().atOffset(ZoneOffset.UTC);
             end = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
-        } else {
+
+        }
+        else if (type == RevenueFilterType.WEEKLY) {
+
+            LocalDate date = LocalDate.parse(period);
+
+            LocalDate weekStart = date.with(DayOfWeek.MONDAY);
+            LocalDate weekEnd = weekStart.plusWeeks(1);
+
+            start = weekStart.atStartOfDay().atOffset(ZoneOffset.UTC);
+            end = weekEnd.atStartOfDay().atOffset(ZoneOffset.UTC);
+
+        }
+        else {
+
             YearMonth ym = YearMonth.parse(period);
             start = ym.atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
             end = ym.plusMonths(1).atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
@@ -306,15 +406,29 @@ public class DashboardService {
         OffsetDateTime end;
 
         if (type == RevenueFilterType.DAILY) {
+
             LocalDate date = LocalDate.parse(period);
             start = date.atStartOfDay().atOffset(ZoneOffset.UTC);
             end = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
-        } else {
+
+        }
+        else if (type == RevenueFilterType.WEEKLY) {
+
+            LocalDate date = LocalDate.parse(period);
+
+            LocalDate weekStart = date.with(DayOfWeek.MONDAY);
+            LocalDate weekEnd = weekStart.plusWeeks(1);
+
+            start = weekStart.atStartOfDay().atOffset(ZoneOffset.UTC);
+            end = weekEnd.atStartOfDay().atOffset(ZoneOffset.UTC);
+
+        }
+        else {
+
             YearMonth ym = YearMonth.parse(period);
             start = ym.atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
             end = ym.plusMonths(1).atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
         }
-
         List<Object[]> rows = orderRepository.findTopSellingItems(start, end);
 
         List<TopItemDto> result = new ArrayList<>();

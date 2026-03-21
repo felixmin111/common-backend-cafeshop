@@ -22,4 +22,5 @@ public class OrderPlaceResponse {
     private List<OrderResponse> activeOrders;
     private String qrValue;
     private String qrUrl;
+    private String qrPng;
 }

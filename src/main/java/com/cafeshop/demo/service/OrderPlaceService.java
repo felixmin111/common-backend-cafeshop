@@ -43,6 +43,11 @@ public class OrderPlaceService {
 
         return mapper.toResponse(repo.save(entity));
     }
+    @Transactional(readOnly = true)
+    public OrderPlaceResponse getByNo(String no) {
+        OrderPlace entity = repo.findByNo(no);
+        return mapper.toResponse(entity);
+    }
 
     @Transactional(readOnly = true)
     public OrderPlaceResponse getById(Long id) {

@@ -13,6 +13,8 @@ import java.util.List;
 public interface OrderPlaceRepository extends JpaRepository<OrderPlace, Long> {
     List<OrderPlace> findAllByStatusNot(OrderPlaceStatus status);
     boolean existsByNo(String no);
+    OrderPlace findByNo(String no);
+
 
     @Query("""
         select op.id, op.no, op.type, op.description, op.seat, op.status,

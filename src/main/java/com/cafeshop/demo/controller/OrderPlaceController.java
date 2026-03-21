@@ -36,6 +36,10 @@ public class OrderPlaceController {
     public ResponseEntity<OrderPlaceResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
+    @GetMapping("/tableNumber/{no}")
+    public ResponseEntity<OrderPlaceResponse> getByNo(@PathVariable String no) {
+        return ResponseEntity.ok(service.getByNo(no));
+    }
 
     @GetMapping
     public ResponseEntity<List<OrderPlaceResponse>> getAll() {
@@ -55,6 +59,8 @@ public class OrderPlaceController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+
     @GetMapping("/with-current-order")
     public ResponseEntity<List<OrderPlaceResponse>> getAllWithCurrentOrder() {
         return ResponseEntity.ok(orderPlaceQueryService.getOrderPlacesWithActiveOrders());
